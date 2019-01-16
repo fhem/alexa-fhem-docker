@@ -115,8 +115,8 @@ RUN if [ "${ARCH}" = "i386" ]; then \
     && npm update -g --unsafe-perm \
     && cd /alexa-fhem.src \
     && npm install -g --unsafe-perm \
-    && mkdir -p /alexa-fhem \
-    && cp /alexa-fhem.src/config-sample.json /alexa-fhem/config.json \
+    && mkdir -p /alexa-fhem/.alexa \
+    && cp /alexa-fhem.src/config-sample.json /alexa-fhem/.alexa/config.json \
     && apt-get purge -qqy \
         build-essential \
         libavahi-compat-libdnssd-dev \
