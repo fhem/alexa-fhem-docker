@@ -117,8 +117,8 @@ before_install: |
 install: |
   travis_wait 120 sleep infinity & ./scripts/build.sh;
 
-script: |
-  ./scripts/test-integration.sh;
+# script: |
+#   ./scripts/test-integration.sh;
 
 after_success: |
   ./scripts/push-docker.sh;
