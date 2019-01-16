@@ -19,7 +19,7 @@ for VARIANT in $( docker images | grep '^fhem/*' | grep -v "<none>" | grep -P ' 
   docker manifest annotate fhem/alexa-fhem:${VARIANT} fhem/alexa-fhem-arm64v8_linux:${VARIANT} --os linux --arch arm64 --variant v8
   docker manifest inspect fhem/alexa-fhem:${VARIANT}
 
-  echo "Pushing manifest fhem/fhem:${VARIANT} to Docker Hub ..."
+  echo "Pushing manifest fhem/alexa-fhem:${VARIANT} to Docker Hub ..."
   docker manifest push fhem/alexa-fhem:${VARIANT}
 
   echo "Requesting current manifest from Docker Hub ..."
