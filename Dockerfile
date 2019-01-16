@@ -101,6 +101,7 @@ RUN echo "org.opencontainers.image.created=${BUILD_DATE}\norg.opencontainers.ima
 # Note: Manual checkout is required if build is not run by Travis:
 #   git clone https://github.com/justme-1968/alexa-fhem.git ./src/alexa-fhem
 COPY src/alexa-fhem/ /alexa-fhem.src/
+COPY src/config.json /alexa-fhem/.alexa/config.json
 
 # Add nodejs app layer
 RUN if [ "${ARCH}" = "i386" ]; then \
@@ -115,8 +116,6 @@ RUN if [ "${ARCH}" = "i386" ]; then \
     && npm update -g --unsafe-perm \
     && cd /alexa-fhem.src \
     && npm install -g --unsafe-perm \
-    && mkdir -p /alexa-fhem/.alexa \
-    && cp /alexa-fhem.src/config-sample.json /alexa-fhem/.alexa/config.json \
     && apt-get purge -qqy \
         build-essential \
         libavahi-compat-libdnssd-dev \
