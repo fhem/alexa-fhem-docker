@@ -17,9 +17,6 @@ cp -f /etc/group.orig /etc/group
 groupadd --force --gid ${ALEXAFHEM_GID} alexa-fhem 2>&1>/dev/null
 useradd --home ${ALEXAFHEM_DIR} --shell /bin/bash --uid ${ALEXAFHEM_UID} --no-create-home --no-user-group --non-unique alexa-fhem 2>&1>/dev/null
 usermod --append --gid ${ALEXAFHEM_GID} --groups ${ALEXAFHEM_GID} alexa-fhem 2>&1>/dev/null
-adduser --quiet alexa-fhem bluetooth 2>&1>/dev/null
-adduser --quiet alexa-fhem dialout 2>&1>/dev/null
-adduser --quiet alexa-fhem tty 2>&1>/dev/null
 chown --recursive --quiet --no-dereference ${ALEXAFHEM_UID}:${ALEXAFHEM_GID} ${ALEXAFHEM_DIR}/ 2>&1>/dev/null
 
 # SSH key: Ed25519
