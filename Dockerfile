@@ -23,7 +23,7 @@ ARG L_VCS_URL="https://github.com/fhem/alexa-fhem-docker/"
 ARG L_VENDOR="FHEM"
 ARG L_LICENSES="MIT"
 ARG L_TITLE="alexa-fhem-${ARCH}_${PLATFORM}"
-ARG L_DESCR="FHEM supplementary Docker image for Amazon alexa voice assistant, based on Debian Stretch."
+ARG L_DESCR="FHEM complementary Docker image for Amazon alexa voice assistant, based on Debian Stretch."
 
 ARG L_AUTHORS_ALEXAFHEM="https://github.com/justme-1968/alexa-fhem/graphs/contributors"
 ARG L_URL_ALEXAFHEM="https://fhem.de/"
