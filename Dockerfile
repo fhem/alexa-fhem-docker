@@ -73,6 +73,8 @@ RUN echo "org.opencontainers.image.created=${BUILD_DATE}\norg.opencontainers.ima
     && DEBIAN_FRONTEND=noninteractive apt-get install -qqy --no-install-recommends \
         apt-transport-https \
         apt-utils \
+        ca-certificates \
+        gnupg \
         locales \
     \
     && DEBIAN_FRONTEND=noninteractive dpkg-reconfigure locales \
