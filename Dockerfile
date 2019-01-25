@@ -114,6 +114,7 @@ RUN if [ "${ARCH}" = "i386" ]; then \
       ; fi \
     && DEBIAN_FRONTEND=noninteractive apt-get install -qqy --no-install-recommends \
         autoconf \
+        automake \
         build-essential \
         libssl-dev \
         nodejs \
@@ -123,6 +124,7 @@ RUN if [ "${ARCH}" = "i386" ]; then \
     && npm install -g --unsafe-perm \
     && apt-get purge -qqy \
         autoconf \
+        automake \
         build-essential \
         libavahi-compat-libdnssd-dev \
         libssl-dev \
