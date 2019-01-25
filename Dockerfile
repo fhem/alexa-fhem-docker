@@ -86,6 +86,9 @@ RUN echo "org.opencontainers.image.created=${BUILD_DATE}\norg.opencontainers.ima
     && echo "Europe/Berlin" > /etc/timezone \
     && DEBIAN_FRONTEND=noninteractive dpkg-reconfigure tzdata \
     \
+    && sed -i "s,http://deb.debian.org,https://cdn-aws.deb.debian.org,g" /etc/apt/sources.list \
+    && sed -i "s,http://security.debian.org,https://cdn-aws.deb.debian.org,g" /etc/apt/sources.list \
+    && DEBIAN_FRONTEND=noninteractive apt-get update \
     && DEBIAN_FRONTEND=noninteractive apt-get install -qqy --no-install-recommends \
         curl \
         dnsutils \
@@ -110,16 +113,20 @@ RUN if [ "${ARCH}" = "i386" ]; then \
         curl -sL https://deb.nodesource.com/setup_10.x | bash - \
       ; fi \
     && DEBIAN_FRONTEND=noninteractive apt-get install -qqy --no-install-recommends \
+        autoconf \
         build-essential \
         libssl-dev \
         nodejs \
+        libtool \
     && npm update -g --unsafe-perm \
     && cd /alexa-fhem.src \
     && npm install -g --unsafe-perm \
     && apt-get purge -qqy \
+        autoconf \
         build-essential \
         libavahi-compat-libdnssd-dev \
         libssl-dev \
+        libtool \
     && apt-get autoremove -qqy && apt-get clean \
     && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* ~/.[^.] ~/.??* ~/* \
   ; fi
@@ -128,7 +135,7 @@ VOLUME [ "/alexa-fhem" ]
 
 EXPOSE 3000
 
-HEALTHCHECK --interval=20s --timeout=10s --start-period=60s --retries=5 CMD /health-check.sh
+HEALTHCHECK --interval=20s --timeout=10s --start-period=10s --retries=5 CMD /health-check.sh
 
 WORKDIR "/alexa-fhem"
 ENTRYPOINT [ "/entry.sh" ]

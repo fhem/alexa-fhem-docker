@@ -4,7 +4,7 @@ services: docker
 branches:
   only:
     - dev
-    - /v\d+.\d+.*/
+    - master
 
 # amd64 toolchain (used as a base for non-sudo compilation, which is faster) 
 include: &toolchain_amd64
