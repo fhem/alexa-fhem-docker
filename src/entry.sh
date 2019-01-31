@@ -58,28 +58,34 @@ cat ${ALEXAFHEM_DIR}/.ssh/known_hosts /ssh_known_hosts.txt | grep -v ^# | sort -
 mv -f ${ALEXAFHEM_DIR}/.ssh/known_hosts.tmp ${ALEXAFHEM_DIR}/.ssh/known_hosts
 chown -R alexa-fhem.alexa-fhem ${ALEXAFHEM_DIR}/.ssh/
 
+if [ ! -L /alexa-fhem/.alexa/config.json && -f /alexa-fhem/.alexa/config.json && ! -e /alexa-fhem/config.json ]; then
+  echo "  - Moving configuration from /alexa-fhem/.alexa/config.json to /alexa-fhem/config.json ..."
+  mv -f /alexa-fhem/.alexa/config.json /alexa-fhem/config.json
+fi
+
+if [ -e /alexa-fhem/alexa-fhem.json && ! -e /alexa-fhem/config.json ]; then
+  echo "  - Moving configuration from /alexa-fhem/alexa-fhem.json to /alexa-fhem/config.json ..."
+  mv -f /alexa-fhem/alexa-fhem.json /alexa-fhem/config.json
+fi
+
+if [ ! -e /alexa-fhem/config.json ]; then
+  echo "  - Creating default config in /alexa-fhem/config.json ..."
+  cp /alexa-fhem.src/alexa-fhem-docker.config.json /alexa-fhem/config.json
+fi
+
+if [ ! -L /alexa-fhem/config.json && -f /alexa-fhem/config.json ]; then
+  echo "  - Creating symlink to config.json in /alexa-fhem/.alexa/config.json ..."
+  mkdir -p /alexa-fhem/.alexa/
+  ln -sf ../config.json /alexa-fhem/.alexa/config.json
+fi
+ln -sf config.json alexa-fhem.json
+
 # Start main process
 echo -e '\n\n'
 
 if [ -s /pre-start.sh ]; then
   echo "Running pre-start script ..."
   /pre-start.sh
-fi
-
-if [ ! -L /alexa-fhem/.alexa/config.json && -f /alexa-fhem/.alexa/config.json && ! -e /alexa-fhem/config.json ]; then
-  echo "Moving configuration from /alexa-fhem/.alexa/config.json to /alexa-fhem/config.json ..."
-  mv -f /alexa-fhem/.alexa/config.json /alexa-fhem/config.json
-fi
-
-if [ ! -e /alexa-fhem/config.json ]; then
-  echo "Creating default config in /alexa-fhem/config.json ..."
-  cp /alexa-fhem.src/alexa-fhem-docker.config.json /alexa-fhem/config.json
-fi
-
-if [ ! -L /alexa-fhem/config.json && -f /alexa-fhem/config.json ]; then
-  echo "Creating symlink to config.json in /alexa-fhem/.alexa/config.json ..."
-  mkdir -p /alexa-fhem/.alexa/
-  ln -s ../config.json /alexa-fhem/.alexa/config.json
 fi
 
 echo 'Starting alexa-fhem ...'
