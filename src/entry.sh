@@ -66,5 +66,15 @@ if [ -s /pre-start.sh ]; then
   /pre-start.sh
 fi
 
+if [ ! -L /alexa-fhem/.alexa/config.json && -f /alexa-fhem/.alexa/config.json && ! -e /alexa-fhem/config.json ]; then
+  echo "Moving configuration from /alexa-fhem/.alexa/config.json to /alexa-fhem/config.json ..."
+  mv -f /alexa-fhem/.alexa/config.json /alexa-fhem/config.json
+fi
+
+if [ ! -L /alexa-fhem/config.json && -f /alexa-fhem/config.json ]; then
+  echo "Creating symlink to config.json in /alexa-fhem/.alexa/config.json ..."
+  ln -s ../config.json /alexa-fhem/.alexa/config.json
+fi
+
 echo 'Starting alexa-fhem ...'
 su - alexa-fhem -c "cd "${ALEXAFHEM_DIR}"; /usr/lib/node_modules/alexa-fhem/bin/alexa --dockerDetached"

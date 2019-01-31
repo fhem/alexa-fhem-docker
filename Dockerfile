@@ -104,7 +104,7 @@ RUN echo "org.opencontainers.image.created=${BUILD_DATE}\norg.opencontainers.ima
 # Note: Manual checkout is required if build is not run by Travis:
 #   git clone https://github.com/justme-1968/alexa-fhem.git ./src/alexa-fhem
 COPY src/alexa-fhem/ /alexa-fhem.src/
-COPY src/config.json /alexa-fhem/.alexa/config.json
+COPY src/config.json /alexa-fhem.src/alexa-fhem-docker.config.json
 
 # Add nodejs app layer
 RUN if [ "${ARCH}" = "i386" ]; then \
