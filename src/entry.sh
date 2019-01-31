@@ -71,8 +71,14 @@ if [ ! -L /alexa-fhem/.alexa/config.json && -f /alexa-fhem/.alexa/config.json &&
   mv -f /alexa-fhem/.alexa/config.json /alexa-fhem/config.json
 fi
 
+if [ ! -e /alexa-fhem/config.json ]; then
+  echo "Creating default config in /alexa-fhem/config.json ..."
+  cp /alexa-fhem.src/alexa-fhem-docker.config.json /alexa-fhem/config.json
+fi
+
 if [ ! -L /alexa-fhem/config.json && -f /alexa-fhem/config.json ]; then
   echo "Creating symlink to config.json in /alexa-fhem/.alexa/config.json ..."
+  mkdir -p /alexa-fhem/.alexa/
   ln -s ../config.json /alexa-fhem/.alexa/config.json
 fi
 
