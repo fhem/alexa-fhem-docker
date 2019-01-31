@@ -69,6 +69,9 @@ COPY src/entry.sh /entry.sh
 COPY src/ssh_known_hosts.txt /ssh_known_hosts.txt
 COPY src/health-check.sh /health-check.sh
 RUN echo "org.opencontainers.image.created=${BUILD_DATE}\norg.opencontainers.image.authors=${L_AUTHORS}\norg.opencontainers.image.url=${L_URL}\norg.opencontainers.image.documentation=${L_USAGE}\norg.opencontainers.image.source=${L_VCS_URL}\norg.opencontainers.image.version=${IMAGE_VERSION}\norg.opencontainers.image.revision=${IMAGE_VCS_REF}\norg.opencontainers.image.vendor=${L_VENDOR}\norg.opencontainers.image.licenses=${L_LICENSES}\norg.opencontainers.image.title=${L_TITLE}\norg.opencontainers.image.description=${L_DESCR}\norg.fhem.alexa.authors=${L_AUTHORS_ALEXAFHEM}\norg.fhem.alexa.url=${L_URL_ALEXAFHEM}\norg.fhem.alexa.documentation=${L_USAGE_ALEXAFHEM}\norg.fhem.alexa.source=${L_VCS_URL_ALEXAFHEM}\norg.fhem.alexa.version=${ALEXAFHEM_VERSION}\norg.fhem.alexa.revision=${VCS_REF}\norg.fhem.alexa.vendor=${L_VENDOR_ALEXAFHEM}\norg.fhem.alexa.licenses=${L_LICENSES_ALEXAFHEM}\norg.fhem.alexa.description=${L_DESCR_ALEXAFHEM}" > /image_info \
+    && sed -i "s/stretch main/stretch main contrib non-free/g" /etc/apt/sources.list \
+    && sed -i "s/stretch-updates main/stretch-updates main contrib non-free/g" /etc/apt/sources.list \
+    && sed -i "s/stretch\/updates main/stretch\/updates main contrib non-free/g" /etc/apt/sources.list \
     && DEBIAN_FRONTEND=noninteractive apt-get update \
     && DEBIAN_FRONTEND=noninteractive apt-get install -qqy --no-install-recommends \
         apt-transport-https \
@@ -76,6 +79,7 @@ RUN echo "org.opencontainers.image.created=${BUILD_DATE}\norg.opencontainers.ima
         ca-certificates \
         gnupg \
         locales \
+    && DEBIAN_FRONTEND=noninteractive apt-get -qqy --no-install-recommends upgrade \
     \
     && DEBIAN_FRONTEND=noninteractive dpkg-reconfigure locales \
     && echo "en_US.UTF-8 UTF-8" > /etc/locale.gen \
@@ -117,8 +121,9 @@ RUN if [ "${ARCH}" = "i386" ]; then \
         automake \
         build-essential \
         libssl-dev \
-        nodejs \
         libtool \
+        nodejs \
+        patch \
     && npm update -g --unsafe-perm \
     && cd /alexa-fhem.src \
     && npm install -g --unsafe-perm \
