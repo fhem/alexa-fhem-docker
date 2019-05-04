@@ -14,7 +14,7 @@ To start your container right away:
 
 Usually you want to keep your FHEM setup after a container was destroyed (or re-build) so it is a good idea to provide an external directory on your Docker host to keep that data:
 
-    docker run -d --name alexa-fhem -p 3000:3000 fhem/alexa-fhem -v /some/host/directory:/alexa-fhem
+    docker run -d --name alexa-fhem -p 3000:3000 -v /some/host/directory:/alexa-fhem fhem/alexa-fhem 
 
 After starting your container, you may check the web server availability:
 
