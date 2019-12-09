@@ -12,9 +12,9 @@ if [[ -z "${WEBPORT}" || "${WEBPORT}" = "null" ]]; then
 fi
 
 if [[ -z "${SSL}" || "${SSL}" = "null" || "${SSL}" = "false" ]]; then
-  PROTO="http://"
+  PROTO="http"
 else
-  PROTO="https://"
+  PROTO="https"
 fi
 
 ALEXAFHEM_STATE=$( curl \
@@ -23,16 +23,17 @@ ALEXAFHEM_STATE=$( curl \
                   --output /dev/null \
                   --write-out "%{http_code}" \
                   --user-agent 'alexa-fhem-docker/1.0 Health Check' \
-                  "${PROTO}://localhost:${PORT}/favicon.ico" )
+                  "${PROTO}://localhost:${WEBPORT}/favicon.ico" )
 if [ $? -ne 0 ] ||
    [ -z "${ALEXAFHEM_STATE}" ] ||
    [ "${ALEXAFHEM_STATE}" == "000" ] ||
    [ "${ALEXAFHEM_STATE:0:1}" == "5" ]; then
-  RETURN="alexa-port(${PORT}): FAILED"
+  RETURN="alexa-port(${WEBPORT}): FAILED"
   STATE=1
 else
-  RETURN="alexa-port(${PORT}): OK"
+  RETURN="alexa-port(${WEBPORT}): OK"
 fi
 
 echo -n ${RETURN}
 exit ${STATE}
+
