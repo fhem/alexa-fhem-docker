@@ -173,7 +173,7 @@ jobs:
           cache-from: type=local,src=/tmp/.buildx-cache
           cache-to: type=local,dest=/tmp/.buildx-cache
           tags: |
-            ghcr.io/${{ github.repository_owner }}/fhem-experimental:${{ steps.buildVars.outputs.TAG_ROLLING }}
+            ghcr.io/${{ github.repository_owner }}/fhem/alexa-fhem:${{ steps.buildVars.outputs.TAG_ROLLING }}
 
           build-args: |
             BUILD_DATE=${{ steps.buildVars.outputs.BUILD_DATE }}
@@ -182,24 +182,3 @@ jobs:
             IMAGE_VERSION=${{ steps.buildVars.outputs.VARIANT }}
             IMAGE_VCS_REF=${{ github.sha }}
             ALEXAFHEM_VERSION=0.5.57
-
-      - name: Build and push cross compiled base image on supported platforms
-        uses: docker/build-push-action@v2
-        with:
-          context: .
-          load: false  
-          file: ./Dockerfile
-          platforms: linux/386,linux/amd64,linux/arm/v6,linux/arm/v7,linux/arm64
-          push: true
-          cache-from: type=local,src=/tmp/.buildx-cache
-          cache-to: type=local,dest=/tmp/.buildx-cache
-          tags: |
-            ghcr.io/${{ github.repository_owner }}/fhefhem/alexa-fhem:${{ steps.buildVars.outputs.VARIANT }}
-
-          build-args: |
-            BUILD_DATE=${{ steps.buildVars.outputs.BUILD_DATE }}
-            TAG=${{ steps.buildVars.outputs.VARIANT }}
-            TAG_ROLLING=${{ steps.buildVars.outputs.TAG_ROLLING }}
-            IMAGE_VERSION=${{ steps.buildVars.outputs.VARIANT }}
-            IMAGE_VCS_REF=${{ github.sha }}
-            ALEXAFHEM_VERSION=0.5.57            
