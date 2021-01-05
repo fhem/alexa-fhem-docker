@@ -79,7 +79,7 @@ jobs:
           platforms: linux/amd64
           push: false
           cache-from: type=local,src=/tmp/.buildx-cache
-          cache-to: type=local,dest=/tmp/.buildx-cache
+          cache-to: type=local,mode=max,dest=/tmp/.buildx-cache
           tags: fhem/alexa-fhem:${{ steps.buildVars.outputs.VARIANT }}
           build-args: |
             BUILD_DATE=${{ steps.buildVars.outputs.BUILD_DATE }}
@@ -171,7 +171,7 @@ jobs:
           platforms: linux/amd64,linux/arm/v7,linux/arm64
           push: true
           cache-from: type=local,src=/tmp/.buildx-cache
-          cache-to: type=local,dest=/tmp/.buildx-cache
+          cache-to: type=local,mode=max,dest=/tmp/.buildx-cache
           tags: |
             ghcr.io/${{ github.repository_owner }}/fhem/alexa-fhem:${{ steps.buildVars.outputs.TAG_ROLLING }}
 
