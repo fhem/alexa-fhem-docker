@@ -33,7 +33,7 @@ jobs:
         id: buildVars
         run: |
           VARIANT_IMAGE="${{ steps.gitVars.outputs.IMAGE_VERSION }}-${{ steps.gitVars.outputs.BRANCH }}"
-          echo "::set-output name=VARIANT::$(echo "{VARIANT_IMAGE}")"
+          echo "::set-output name=VARIANT::$(echo "${VARIANT_IMAGE}")"
           echo "::set-output name=VARIANT_IMAGE::$(echo "$VARIANT_IMAGE")"
           echo "::set-output name=BUILD_DATE::$(  date --iso-8601=seconds --utc )"
           # detect rolling branch
