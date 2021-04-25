@@ -1,5 +1,5 @@
 # Docker image for alexa-fhem
-A [FHEM](https://fhem.de/) complementary Docker image for Amazon alexa voice assistant, based on Debian Stretch.
+A [FHEM](https://fhem.de/) complementary Docker image for Amazon alexa voice assistant, based on Debian Stretch and Node 14.
 
 
 ## Installation
