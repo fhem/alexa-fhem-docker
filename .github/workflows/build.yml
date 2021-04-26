@@ -181,4 +181,4 @@ jobs:
             TAG_ROLLING=${{ steps.buildVars.outputs.TAG_ROLLING }}
             IMAGE_VERSION=${{ steps.buildVars.outputs.VARIANT }}
             IMAGE_VCS_REF=${{ github.sha }}
-            ALEXAFHEM_VERSION=0.5.57
+            ALEXAFHEM_VERSION=0.5.61
