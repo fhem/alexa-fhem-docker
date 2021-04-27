@@ -1,5 +1,5 @@
 # Docker image for alexa-fhem
-A [FHEM](https://fhem.de/) complementary Docker image for Amazon alexa voice assistant, based on Debian Stretch.
+A [FHEM](https://fhem.de/) complementary Docker image for Amazon alexa voice assistant, based on Debian Stretch and Node 14.
 
 
 ## Installation
@@ -46,7 +46,7 @@ This is a multi-platform image, providing support for the following platforms:
 Linux:
 
 - `x86-64/AMD64` [Link](https://hub.docker.com/r/fhem/alexa-fhem-amd64_linux/)
-- `i386` [Link](https://hub.docker.com/r/fhem/alexa-fhem-i386_linux/)
+- `i386` [Link](https://hub.docker.com/r/fhem/alexa-fhem-i386_linux/) currently not updated !
 - `ARM32v5, armel` not available
 - `ARM32v7, armhf` [Link](https://hub.docker.com/r/fhem/alexa-fhem-arm32v7_linux/)
 - `ARM64v8, arm64` [Link](https://hub.docker.com/r/fhem/alexa-fhem-arm64v8_linux/)
@@ -86,6 +86,6 @@ The platform repositories will also allow you to choose more specific build tags
 
 
 ___
-[Production ![Build Status](https://travis-ci.com/fhem/alexa-fhem-docker.svg?branch=master)](https://travis-ci.com/fhem/alexa-fhem-docker)
+[Production Build and Test](https://github.com/fhem/fhem/alexa-fhem-docker/workflows/Build%20and%20Test/badge.svg?branch=master)
 
-[Development ![Build Status](https://travis-ci.com/fhem/alexa-fhem-docker.svg?branch=dev)](https://travis-ci.com/fhem/alexa-fhem-docker)
+[Development Build and Test](https://github.com/fhem/fhem/alexa-fhem-docker/workflows/Build%20and%20Test/badge.svg?branch=dev)

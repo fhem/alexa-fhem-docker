@@ -1,28 +1,92 @@
 ARG BASE_IMAGE="debian"
-ARG BASE_IMAGE_TAG="stretch"
-FROM ${BASE_IMAGE}:${BASE_IMAGE_TAG}
+ARG BASE_IMAGE_TAG="9.13-slim"
+FROM --platform=$TARGETPLATFORM ${BASE_IMAGE}:${BASE_IMAGE_TAG}
+
+ARG TARGETPLATFORM
+
+
+ENV TERM xterm
+ENV LANG en_US.UTF-8
+ENV LANGUAGE en_US:en
+ENV LC_ALL en_US.UTF-8
+
+# Install base environment
+COPY ./src/qemu-* /usr/bin/
+COPY src/entry.sh /entry.sh
+COPY src/ssh_known_hosts.txt /ssh_known_hosts.txt
+COPY src/health-check.sh /health-check.sh
+
+RUN  sed -i "s/stretch main/stretch main contrib non-free/g" /etc/apt/sources.list \
+    && sed -i "s/stretch-updates main/stretch-updates main contrib non-free/g" /etc/apt/sources.list \
+    && sed -i "s/stretch\/updates main/stretch\/updates main contrib non-free/g" /etc/apt/sources.list \
+    && DEBIAN_FRONTEND=noninteractive apt-get update \
+    && DEBIAN_FRONTEND=noninteractive apt-get install -qqy --no-install-recommends \
+        apt-transport-https \
+        apt-utils \
+        ca-certificates \
+        gnupg \
+        locales \
+    \
+    && DEBIAN_FRONTEND=noninteractive dpkg-reconfigure locales \
+    && echo "en_US.UTF-8 UTF-8" > /etc/locale.gen \
+    && locale-gen \
+    && /usr/sbin/update-locale LANG=en_US.UTF-8 \
+    \
+    && ln -sf /usr/share/zoneinfo/Europe/Berlin /etc/localtime \
+    && echo "Europe/Berlin" > /etc/timezone \
+    && DEBIAN_FRONTEND=noninteractive dpkg-reconfigure tzdata \
+    \
+    && sed -i "s,http://deb.debian.org,https://cdn-aws.deb.debian.org,g" /etc/apt/sources.list \
+    && sed -i "s,http://security.debian.org,https://cdn-aws.deb.debian.org,g" /etc/apt/sources.list \
+    && DEBIAN_FRONTEND=noninteractive apt-get update \
+    && DEBIAN_FRONTEND=noninteractive apt-get install -qqy --no-install-recommends \
+        curl \
+        dnsutils \
+        inetutils-ping \
+        jq \
+        lsb-release \
+        openssh-client \
+        wget \
+    && apt-get autoremove -qqy && apt-get clean \
+    && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* ~/.[^.] ~/.??* ~/*
+
+ARG ALEXAFHEM_VERSION="0.5.61"
+
+# Add nodejs app layer
+RUN LC_ALL=C curl --retry 3 --retry-connrefused --retry-delay 2 -fsSL https://deb.nodesource.com/setup_14.x | LC_ALL=C bash - \
+      && LC_ALL=C DEBIAN_FRONTEND=noninteractive apt-get install -qqy --no-install-recommends \
+        nodejs=14.* \
+    && if [ ! -e /usr/bin/npm ]; then \
+          LC_ALL=C DEBIAN_FRONTEND=noninteractive apt-get install -qqy --no-install-recommends \
+            npm=5.8.* \
+    ; fi \
+    && npm install -g --unsafe-perm --production \
+        npm \
+    && if [ "${IMAGE_LAYER_NODEJS_EXT}" != "0" ]; then \
+          npm install -g --unsafe-perm --production \
+          alexa-fhem@${ALEXAFHEM_VERSION} \
+      ; fi \
+    && LC_ALL=C apt-get autoremove -qqy && LC_ALL=C apt-get clean \
+    && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* ~/.[^.] ~/.??* ~/* \
+
+# Add alexa-fhem app layer
+COPY src/config.json /alexa-fhem.src/alexa-fhem-docker.config.json
 
 # Arguments to instantiate as variables
-ARG BASE_IMAGE
-ARG BASE_IMAGE_TAG
-ARG ARCH="amd64"
-ARG PLATFORM="linux"
 ARG TAG=""
 ARG TAG_ROLLING=""
 ARG BUILD_DATE=""
 ARG IMAGE_VCS_REF=""
-ARG VCS_REF=""
-ARG ALEXAFHEM_VERSION=""
 ARG IMAGE_VERSION=""
 
 # Re-usable variables during build
 ARG L_AUTHORS="Julian Pawlowski (Forum.fhem.de:@loredo, Twitter:@loredo)"
-ARG L_URL="https://hub.docker.com/r/fhem/alexa-fhem-${ARCH}_${PLATFORM}"
+ARG L_URL="https://hub.docker.com/r/fhem/alexa-fhem-${TARGETPLATFORM}"
 ARG L_USAGE="https://github.com/fhem/alexa-fhem-docker/blob/${IMAGE_VCS_REF}/README.md"
 ARG L_VCS_URL="https://github.com/fhem/alexa-fhem-docker/"
 ARG L_VENDOR="FHEM"
 ARG L_LICENSES="MIT"
-ARG L_TITLE="alexa-fhem-${ARCH}_${PLATFORM}"
+ARG L_TITLE="alexa-fhem-${TARGETPLATFORM}"
 ARG L_DESCR="FHEM complementary Docker image for Amazon alexa voice assistant, based on Debian Stretch."
 
 ARG L_AUTHORS_ALEXAFHEM="https://github.com/justme-1968/alexa-fhem/graphs/contributors"
@@ -53,90 +117,12 @@ LABEL org.fhem.alexa.url=${L_URL_ALEXAFHEM}
 LABEL org.fhem.alexa.documentation=${L_USAGE_ALEXAFHEM}
 LABEL org.fhem.alexa.source=${L_VCS_URL_ALEXAFHEM}
 LABEL org.fhem.alexa.version=${ALEXAFHEM_VERSION}
-LABEL org.fhem.alexa.revision=${VCS_REF}
 LABEL org.fhem.alexa.vendor=${L_VENDOR_ALEXAFHEM}
 LABEL org.fhem.alexa.licenses=${L_LICENSES_ALEXAFHEM}
 LABEL org.fhem.alexa.description=${L_DESCR_ALEXAFHEM}
 
-ENV TERM xterm
-ENV LANG en_US.UTF-8
-ENV LANGUAGE en_US:en
-ENV LC_ALL en_US.UTF-8
+RUN echo "org.opencontainers.image.created=${BUILD_DATE}\norg.opencontainers.image.authors=${L_AUTHORS}\norg.opencontainers.image.url=${L_URL}\norg.opencontainers.image.documentation=${L_USAGE}\norg.opencontainers.image.source=${L_VCS_URL}\norg.opencontainers.image.version=${IMAGE_VERSION}\norg.opencontainers.image.revision=${IMAGE_VCS_REF}\norg.opencontainers.image.vendor=${L_VENDOR}\norg.opencontainers.image.licenses=${L_LICENSES}\norg.opencontainers.image.title=${L_TITLE}\norg.opencontainers.image.description=${L_DESCR}\norg.fhem.alexa.authors=${L_AUTHORS_ALEXAFHEM}\norg.fhem.alexa.url=${L_URL_ALEXAFHEM}\norg.fhem.alexa.documentation=${L_USAGE_ALEXAFHEM}\norg.fhem.alexa.source=${L_VCS_URL_ALEXAFHEM}\norg.fhem.alexa.version=${ALEXAFHEM_VERSION}\norg.fhem.alexa.revision=${VCS_REF}\norg.fhem.alexa.vendor=${L_VENDOR_ALEXAFHEM}\norg.fhem.alexa.licenses=${L_LICENSES_ALEXAFHEM}\norg.fhem.alexa.description=${L_DESCR_ALEXAFHEM}" > /image_info
 
-# Install base environment
-COPY ./src/qemu-* /usr/bin/
-COPY src/entry.sh /entry.sh
-COPY src/ssh_known_hosts.txt /ssh_known_hosts.txt
-COPY src/health-check.sh /health-check.sh
-RUN echo "org.opencontainers.image.created=${BUILD_DATE}\norg.opencontainers.image.authors=${L_AUTHORS}\norg.opencontainers.image.url=${L_URL}\norg.opencontainers.image.documentation=${L_USAGE}\norg.opencontainers.image.source=${L_VCS_URL}\norg.opencontainers.image.version=${IMAGE_VERSION}\norg.opencontainers.image.revision=${IMAGE_VCS_REF}\norg.opencontainers.image.vendor=${L_VENDOR}\norg.opencontainers.image.licenses=${L_LICENSES}\norg.opencontainers.image.title=${L_TITLE}\norg.opencontainers.image.description=${L_DESCR}\norg.fhem.alexa.authors=${L_AUTHORS_ALEXAFHEM}\norg.fhem.alexa.url=${L_URL_ALEXAFHEM}\norg.fhem.alexa.documentation=${L_USAGE_ALEXAFHEM}\norg.fhem.alexa.source=${L_VCS_URL_ALEXAFHEM}\norg.fhem.alexa.version=${ALEXAFHEM_VERSION}\norg.fhem.alexa.revision=${VCS_REF}\norg.fhem.alexa.vendor=${L_VENDOR_ALEXAFHEM}\norg.fhem.alexa.licenses=${L_LICENSES_ALEXAFHEM}\norg.fhem.alexa.description=${L_DESCR_ALEXAFHEM}" > /image_info \
-    && sed -i "s/stretch main/stretch main contrib non-free/g" /etc/apt/sources.list \
-    && sed -i "s/stretch-updates main/stretch-updates main contrib non-free/g" /etc/apt/sources.list \
-    && sed -i "s/stretch\/updates main/stretch\/updates main contrib non-free/g" /etc/apt/sources.list \
-    && DEBIAN_FRONTEND=noninteractive apt-get update \
-    && DEBIAN_FRONTEND=noninteractive apt-get install -qqy --no-install-recommends \
-        apt-transport-https \
-        apt-utils \
-        ca-certificates \
-        gnupg \
-        locales \
-    && DEBIAN_FRONTEND=noninteractive apt-get -qqy --no-install-recommends upgrade \
-    \
-    && DEBIAN_FRONTEND=noninteractive dpkg-reconfigure locales \
-    && echo "en_US.UTF-8 UTF-8" > /etc/locale.gen \
-    && locale-gen \
-    && /usr/sbin/update-locale LANG=en_US.UTF-8 \
-    \
-    && ln -sf /usr/share/zoneinfo/Europe/Berlin /etc/localtime \
-    && echo "Europe/Berlin" > /etc/timezone \
-    && DEBIAN_FRONTEND=noninteractive dpkg-reconfigure tzdata \
-    \
-    && sed -i "s,http://deb.debian.org,https://cdn-aws.deb.debian.org,g" /etc/apt/sources.list \
-    && sed -i "s,http://security.debian.org,https://cdn-aws.deb.debian.org,g" /etc/apt/sources.list \
-    && DEBIAN_FRONTEND=noninteractive apt-get update \
-    && DEBIAN_FRONTEND=noninteractive apt-get install -qqy --no-install-recommends \
-        curl \
-        dnsutils \
-        inetutils-ping \
-        jq \
-        lsb-release \
-        openssh-client \
-        wget \
-    && apt-get autoremove -qqy && apt-get clean \
-    && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* ~/.[^.] ~/.??* ~/*
-
-# Add alexa-fhem app layer
-# Note: Manual checkout is required if build is not run by Travis:
-#   git clone https://github.com/justme-1968/alexa-fhem.git ./src/alexa-fhem
-COPY src/alexa-fhem/ /alexa-fhem.src/
-COPY src/config.json /alexa-fhem.src/alexa-fhem-docker.config.json
-
-# Add nodejs app layer
-RUN if [ "${ARCH}" = "i386" ]; then \
-        curl -sL https://deb.nodesource.com/setup_8.x | bash - \
-      ; else \
-        curl -sL https://deb.nodesource.com/setup_10.x | bash - \
-      ; fi \
-    && DEBIAN_FRONTEND=noninteractive apt-get install -qqy --no-install-recommends \
-        autoconf \
-        automake \
-        build-essential \
-        libssl-dev \
-        libtool \
-        nodejs \
-        patch \
-    && npm update -g --unsafe-perm \
-    && cd /alexa-fhem.src \
-    && npm install -g --unsafe-perm \
-    && apt-get purge -qqy \
-        autoconf \
-        automake \
-        build-essential \
-        libavahi-compat-libdnssd-dev \
-        libssl-dev \
-        libtool \
-    && apt-get autoremove -qqy && apt-get clean \
-    && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* ~/.[^.] ~/.??* ~/* \
-  ; fi
 
 VOLUME [ "/alexa-fhem" ]
 
