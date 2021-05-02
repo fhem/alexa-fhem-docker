@@ -36,9 +36,6 @@ RUN  sed -i "s/stretch main/stretch main contrib non-free/g" /etc/apt/sources.li
     && echo "Europe/Berlin" > /etc/timezone \
     && DEBIAN_FRONTEND=noninteractive dpkg-reconfigure tzdata \
     \
-    && sed -i "s,http://deb.debian.org,https://cdn-aws.deb.debian.org,g" /etc/apt/sources.list \
-    && sed -i "s,http://security.debian.org,https://cdn-aws.deb.debian.org,g" /etc/apt/sources.list \
-    && DEBIAN_FRONTEND=noninteractive apt-get update \
     && DEBIAN_FRONTEND=noninteractive apt-get install -qqy --no-install-recommends \
         curl \
         dnsutils \
