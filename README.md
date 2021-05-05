@@ -1,12 +1,23 @@
 # Docker image for alexa-fhem
-A [FHEM](https://fhem.de/) complementary Docker image for Amazon alexa voice assistant, based on Debian Stretch and Node 14.
+A [FHEM](https://fhem.de/) complementary Docker image for Amazon alexa voice assistant, based on 
+- Debian Stretch 
+- Node 14
+- Alexa-Fhem 0.5.61
 
 
 ## Installation
-Pre-build images are available on [Docker Hub](https://hub.docker.com/r/fhem/).
-We recommend pulling from the [main repository](https://hub.docker.com/r/fhem/alexa-fhem/) to allow automatic download of the correct image for your system platform:
+Pre-build images are available on [Docker Hub](https://hub.docker.com/r/fhem/alexa-fhem) and on [Github Container Registry](https://github.com/orgs/fhem/packages/container/package/fhem/alexa-fhem).
+
+#### From Docker Hub
+Currently outdated but still available
 
 	docker pull fhem/alexa-fhem
+
+#### From Github container registry
+Updated version, only with :dev Tag
+
+        docker pull ghcr.io/fhem/fhem/alexa-fhem:dev
+
 
 To start your container right away:
 
@@ -32,11 +43,12 @@ This image provides 2 different variants:
 You can use one of those variants by adding them to the docker image name like this:
 
 	docker pull fhem/alexa-fhem:latest
+	docker pull ghcr.io/fhem/fhem/alexa-fhem:dev
 
 If you do not specify any variant, `latest` will always be the default.
 
-`latest` will give you the current stable Docker image, including up-to-date alexa-fhem.
-`dev` will give you the latest development Docker image, including up-to-date alexa-fhem.
+`latest` will give you the current stable Docker image.
+`dev` will give you the latest development Docker image.
 
 
 ### Supported platforms
@@ -46,8 +58,6 @@ This is a multi-platform image, providing support for the following platforms:
 Linux:
 
 - `x86-64/AMD64` [Link](https://hub.docker.com/r/fhem/alexa-fhem-amd64_linux/)
-- `i386` [Link](https://hub.docker.com/r/fhem/alexa-fhem-i386_linux/) currently not updated !
-- `ARM32v5, armel` not available
 - `ARM32v7, armhf` [Link](https://hub.docker.com/r/fhem/alexa-fhem-arm32v7_linux/)
 - `ARM64v8, arm64` [Link](https://hub.docker.com/r/fhem/alexa-fhem-arm64v8_linux/)
 
@@ -83,7 +93,40 @@ The platform repositories will also allow you to choose more specific build tags
 
     	-e TZ=Europe/Berlin
 
+## Use docker-compose.yaml
+No problem at all. To connect alexa-fhem to your alexa container, you need a common network.
+Named it fhem_net
 
+```
+version: '2.3'
+
+networks:
+  fhem_net:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.27.0.0/24
+          gateway: 172.27.0.1
+        - subnet: fd00:0:0:0:27::/80
+          gateway: fd00:0:0:0:27::1
+
+services:
+  alexa-fhem:
+    # image: fhem/alexa-fhem:latest
+    image: ghcr.io/fhem/fhem/alexa-fhem:dev
+    restart: always
+    networks:
+     - fhem_net
+    ports:
+      - "3000:3000"
+    volumes:
+      - "./alexa-fhem/:/alexa-fhem/"
+    environment:
+      ALEXAFHEM_UID: 6062
+      ALEXAFHEM_GID: 6062
+      TZ: Europe/Berlin
+```
 
 ___
 [Production Build and Test](https://github.com/fhem/fhem/alexa-fhem-docker/workflows/Build%20and%20Test/badge.svg?branch=master)
