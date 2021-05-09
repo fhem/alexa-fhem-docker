@@ -1,32 +1,44 @@
 # Docker image for alexa-fhem
 A [FHEM](https://fhem.de/) complementary Docker image for Amazon alexa voice assistant, based on 
-- Debian Stretch 
-- Node 14
-- Alexa-Fhem 0.5.61
+- [Debian Stretch](https://hub.docker.com/_/debian?tab=tags&page=1&ordering=last_updated&name=stretch)
+- [NodeJS](https://nodejs.org/en/)
+- [alexa_fhem](https://www.npmjs.com/package/alexa-fhem?activeTab=versions)
+
 
 
 ## Installation
 Pre-build images are available on [Docker Hub](https://hub.docker.com/r/fhem/alexa-fhem) and on [Github Container Registry](https://github.com/orgs/fhem/packages/container/package/fhem/alexa-fhem).
 
-#### From Docker Hub
+### From Docker Hub
 Currently outdated but still available
+- NodeJS 10
+- Alexa-Fhem 0.5.27
 
-	docker pull fhem/alexa-fhem
 
-#### From Github container registry
+        docker pull fhem/alexa-fhem
+
+#### To start your container right away:
+
+        docker run -d --name alexa-fhem -p 3000:3000 fhem/alexa-fhem
+
+### From Github container registry
 Updated version, only with :dev Tag
+- NodeJS 14
+- Alexa-Fhem 0.5.61
 
         docker pull ghcr.io/fhem/fhem/alexa-fhem:dev
 
+#### To start your container right away:
 
-To start your container right away:
+docker run -d --name alexa-fhem -p 3000:3000 ghcr.io/fhem/fhem/alexa-fhem:dev
 
-    docker run -d --name alexa-fhem -p 3000:3000 fhem/alexa-fhem
 
+### Permanent storage
 Usually you want to keep your FHEM setup after a container was destroyed (or re-build) so it is a good idea to provide an external directory on your Docker host to keep that data:
 
     docker run -d --name alexa-fhem -p 3000:3000 -v /some/host/directory:/alexa-fhem fhem/alexa-fhem 
 
+#### Verify if container is runnung
 After starting your container, you may check the web server availability:
 
 	http://xxx.xxx.xxx.xxx:3000/
@@ -47,8 +59,8 @@ You can use one of those variants by adding them to the docker image name like t
 
 If you do not specify any variant, `latest` will always be the default.
 
-`latest` will give you the current stable Docker image.
-`dev` will give you the latest development Docker image.
+`latest` will give you the last as stable known Docker image.
+`dev` will give you the latest development Docker image, which is more up to-date
 
 
 ### Supported platforms
@@ -95,7 +107,7 @@ The platform repositories will also allow you to choose more specific build tags
 
 ## Use docker-compose.yaml
 No problem at all. To connect alexa-fhem to your alexa container, you need a common network.
-Named it fhem_net
+Named it fhem_net. You should connect your fhem container to the same network to support communication via alexa-fhem and fhem itself.
 
 ```
 version: '2.3'
