@@ -55,7 +55,7 @@ jobs:
           echo ROLLING_TAG: ${{ steps.buildVars.outputs.TAG_ROLLING }}
           
       - name: Docker Setup QEMU
-        uses: docker/setup-qemu-action@v1.0.1
+        uses: docker/setup-qemu-action@v1.2.0
         with:
           image: tonistiigi/binfmt:latest
           platforms: all
@@ -144,7 +144,7 @@ jobs:
           echo ROLLING_TAG: ${{ steps.buildVars.outputs.TAG_ROLLING }}
           
       - name: Docker Setup QEMU
-        uses: docker/setup-qemu-action@v1.0.1
+        uses: docker/setup-qemu-action@v1.2.0
         with:
           image: tonistiigi/binfmt:latest
           platforms: all
