@@ -3,10 +3,14 @@ name: Build and Test
 on:
   push:
     branches:
-    - "dev*"  # Support wildcard matching
-
+      - 'master'
+      - 'dev*'
+    tags:
+      - 'v*'
   pull_request:
-    branches: [ dev ]
+    branches:
+      - 'master'
+      - 'dev'
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
@@ -71,6 +75,17 @@ jobs:
           restore-keys: |
              ${{ runner.os }}-buildx-
 
+      - name: Docker meta
+        id: meta
+        uses: docker/metadata-action@v3
+        with:
+          images: fhem/alexa-fhem
+          tags: |
+            type=ref,event=branch
+            type=ref,event=pr
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+
       - name: Build for test full blown amd64 
         uses: docker/build-push-action@v2
         id: docker_build
@@ -82,14 +97,8 @@ jobs:
           push: false
           cache-from: type=local,src=/tmp/.buildx-cache
           cache-to: type=local,mode=max,dest=/tmp/.buildx-cache
-          tags: fhem/alexa-fhem:${{ steps.buildVars.outputs.VARIANT }}
-          build-args: |
-            BUILD_DATE=${{ steps.buildVars.outputs.BUILD_DATE }}
-            TAG=${{ steps.buildVars.outputs.VARIANT }}
-            TAG_ROLLING=${{ steps.buildVars.outputs.TAG_ROLLING }}
-            IMAGE_VERSION=${{ steps.buildVars.outputs.VARIANT }}
-            IMAGE_VCS_REF=${{ github.sha }}
-            ALEXAFHEM_VERSION=0.5.61
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
 
       - name: Inspect and run integration tests
         run: |
@@ -160,13 +169,25 @@ jobs:
           restore-keys: |
            ${{ runner.os }}-buildx-
 
+      - name: Docker meta
+        id: meta
+        uses: docker/metadata-action@v3
+        with:
+          images: fhem/alexa-fhem,ghcr.io/${{ github.repository_owner }}/fhem/alexa-fhem
+          tags: |
+            type=ref,event=branch
+            type=ref,event=pr
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+          
       - name: Login to GitHub Container Registry
+        if: github.event_name != 'pull_request'
         uses: docker/login-action@v1 
         with:
           registry: ghcr.io
           username: ${{ github.repository_owner }}
           password: ${{ secrets.GITHUB_TOKEN }}
-
+          
       - name: Build and push cross compiled full blown image on supported platforms
         uses: docker/build-push-action@v2
         with:
@@ -174,16 +195,8 @@ jobs:
           load: false  
           file: ./Dockerfile
           platforms: linux/amd64,linux/arm/v7,linux/arm64
-          push: true
+          push: ${{ github.event_name != 'pull_request' }}
           cache-from: type=local,src=/tmp/.buildx-cache
           cache-to: type=local,mode=max,dest=/tmp/.buildx-cache
-          tags: |
-            ghcr.io/${{ github.repository_owner }}/fhem/alexa-fhem:${{ steps.buildVars.outputs.TAG_ROLLING }}
-
-          build-args: |
-            BUILD_DATE=${{ steps.buildVars.outputs.BUILD_DATE }}
-            TAG=${{ steps.buildVars.outputs.VARIANT }}
-            TAG_ROLLING=${{ steps.buildVars.outputs.TAG_ROLLING }}
-            IMAGE_VERSION=${{ steps.buildVars.outputs.VARIANT }}
-            IMAGE_VCS_REF=${{ github.sha }}
-            ALEXAFHEM_VERSION=0.5.61
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
