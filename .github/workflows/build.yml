@@ -102,8 +102,8 @@ jobs:
 
       - name: Inspect and run integration tests
         run: |
-          docker image inspect fhem/alexa-fhem:${{ steps.buildVars.outputs.VARIANT }}
-          docker history fhem/alexa-fhem:${{ steps.buildVars.outputs.VARIANT }}
+          docker image inspect ${{ steps.meta.outputs.tags }}
+          docker history ${{ steps.meta.outputs.tags }}
           ./scripts/test-integration.sh;
 
   published_build:
