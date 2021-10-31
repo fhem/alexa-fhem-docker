@@ -61,7 +61,7 @@ RUN LC_ALL=C curl --retry 3 --retry-connrefused --retry-delay 2 -fsSL https://de
           alexa-fhem@${ALEXAFHEM_VERSION} \
       ; fi \
     && LC_ALL=C apt-get autoremove -qqy && LC_ALL=C apt-get clean \
-    && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* ~/.[^.] ~/.??* ~/* \
+    && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* ~/.[^.] ~/.??* ~/* 
 
 # Add alexa-fhem app layer
 COPY src/config.json /alexa-fhem.src/alexa-fhem-docker.config.json
