@@ -44,7 +44,7 @@ RUN  sed -i "s/stretch main/stretch main contrib non-free/g" /etc/apt/sources.li
     && apt-get autoremove -qqy && apt-get clean \
     && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* ~/.[^.] ~/.??* ~/*
 
-ARG ALEXAFHEM_VERSION="0.5.62"
+ARG ALEXAFHEM_VERSION="0.5.61"
 
 # Add nodejs app layer
 RUN LC_ALL=C curl --retry 3 --retry-connrefused --retry-delay 2 -fsSL https://deb.nodesource.com/setup_14.x | LC_ALL=C bash - \
