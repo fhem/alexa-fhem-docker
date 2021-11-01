@@ -173,8 +173,8 @@ jobs:
           path: /tmp/.buildx-cache
           key: ${{ runner.os }}-buildx-${{ github.sha }}
           restore-keys: |
-           ${{ runner.os }}-build-
            ${{ runner.os }}-buildx-
+           ${{ runner.os }}-build-
 
       - name: Docker meta
         id: meta
