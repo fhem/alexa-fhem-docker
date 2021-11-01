@@ -71,8 +71,9 @@ jobs:
         uses: actions/cache@v2
         with:
           path: /tmp/.buildx-cache
-          key: ${{ runner.os }}-buildx-${{ github.sha }}
+          key: ${{ runner.os }}-build-${{ github.sha }}
           restore-keys: |
+             ${{ runner.os }}-build-
              ${{ runner.os }}-buildx-
 
       - name: Docker meta
@@ -84,7 +85,7 @@ jobs:
             type=ref,event=branch
             type=ref,event=pr
             type=semver,pattern={{version}}
-            type=semver,pattern={{major}}.{{minor}}
+            type=semver,pattern={{major}}
 
       - name: Build for test full blown amd64 
         uses: docker/build-push-action@v2
@@ -99,6 +100,11 @@ jobs:
           cache-to: type=local,mode=max,dest=/tmp/.buildx-cache
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+          build-args: |
+            BUILD_DATE=${{ steps.buildVars.outputs.BUILD_DATE }}
+            IMAGE_VERSION=${{ steps.buildVars.outputs.VARIANT }}
+            IMAGE_VCS_REF=${{ github.sha }}
+            ALEXAFHEM_VERSION=0.5.61
 
       - name: Inspect and run integration tests
         run: |
@@ -167,6 +173,7 @@ jobs:
           path: /tmp/.buildx-cache
           key: ${{ runner.os }}-buildx-${{ github.sha }}
           restore-keys: |
+           ${{ runner.os }}-build-
            ${{ runner.os }}-buildx-
 
       - name: Docker meta
@@ -178,7 +185,7 @@ jobs:
             type=ref,event=branch
             type=ref,event=pr
             type=semver,pattern={{version}}
-            type=semver,pattern={{major}}.{{minor}}
+            type=semver,pattern={{major}}
           
       - name: Login to GitHub Container Registry
         if: github.event_name != 'pull_request'
@@ -200,3 +207,8 @@ jobs:
           cache-to: type=local,mode=max,dest=/tmp/.buildx-cache
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+          build-args: |
+            BUILD_DATE=${{ steps.buildVars.outputs.BUILD_DATE }}
+            IMAGE_VERSION=${{ steps.buildVars.outputs.VARIANT }}
+            IMAGE_VCS_REF=${{ github.sha }}
+            ALEXAFHEM_VERSION=0.5.61
