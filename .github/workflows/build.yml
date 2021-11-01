@@ -108,8 +108,8 @@ jobs:
 
       - name: Inspect and run integration tests
         run: |
-          docker image inspect ${{ steps.meta.outputs.tags }}
-          docker history ${{ steps.meta.outputs.tags }}
+          docker image inspect ${{ fromJSON(steps.meta.outputs.json).tags[0] }}
+          docker history ${{ fromJSON(steps.meta.outputs.json).tags[0] }}
           ./scripts/test-integration.sh;
 
   published_build:
