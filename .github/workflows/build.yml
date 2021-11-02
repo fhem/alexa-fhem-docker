@@ -107,6 +107,7 @@ jobs:
             ALEXAFHEM_VERSION=0.5.61
             L_USAGE=${{ github.server_url }}/${{ github.repository }}/blob/${{ github.sha }}/README.md
             L_VCS_URL=${{ github.server_url }}/${{ github.repository }}/
+            L_AUTHORS=${{ github.server_url }}/${{ github.repository }}/graphs/contributors
 
       - name: Inspect and run integration tests
         run: |
@@ -216,3 +217,4 @@ jobs:
             ALEXAFHEM_VERSION=0.5.61
             L_USAGE=${{ github.server_url }}/${{ github.repository }}/blob/${{ github.sha }}/README.md
             L_VCS_URL=${{ github.server_url }}/${{ github.repository }}/
+            L_AUTHORS=${{ github.server_url }}/${{ github.repository }}/graphs/contributors
