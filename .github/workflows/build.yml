@@ -82,8 +82,6 @@ jobs:
         with:
           images: fhem/alexa-fhem
           tags: |
-            type=ref,event=branch
-            type=ref,event=pr
             type=semver,pattern={{version}}
             type=semver,pattern={{major}}
 
@@ -101,10 +99,12 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           build-args: |
-            BUILD_DATE=${{ steps.buildVars.outputs.BUILD_DATE }}
-            IMAGE_VERSION=${{ steps.buildVars.outputs.VARIANT }}
-            IMAGE_VCS_REF=${{ github.sha }}
+            BUILD_DATE=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.created'] }}
+            IMAGE_VERSION=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.version'] }}
+            IMAGE_VCS_REF=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.revision'] }}
             ALEXAFHEM_VERSION=0.5.61
+            L_USAGE=${{ github.server_url }}/${{ github.repository }}/blob/${{ github.sha }}/README.md
+            L_VCS_URL=${{ github.server_url }}/${{ github.repository }}/
 
       - name: Inspect and run integration tests
         run: |
@@ -182,8 +182,6 @@ jobs:
         with:
           images: ghcr.io/${{ github.repository_owner }}/fhem/alexa-fhem
           tags: |
-            type=ref,event=branch
-            type=ref,event=pr
             type=semver,pattern={{version}}
             type=semver,pattern={{major}}
           
@@ -208,7 +206,9 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           build-args: |
-            BUILD_DATE=${{ steps.buildVars.outputs.BUILD_DATE }}
-            IMAGE_VERSION=${{ steps.buildVars.outputs.VARIANT }}
-            IMAGE_VCS_REF=${{ github.sha }}
+            BUILD_DATE=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.created'] }}
+            IMAGE_VERSION=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.version'] }}
+            IMAGE_VCS_REF=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.revision'] }}
             ALEXAFHEM_VERSION=0.5.61
+            L_USAGE=${{ github.server_url }}/${{ github.repository }}/blob/${{ github.sha }}/README.md
+            L_VCS_URL=${{ github.server_url }}/${{ github.repository }}/
