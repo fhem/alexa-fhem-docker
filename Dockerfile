@@ -17,7 +17,6 @@ RUN  sed -i "s/stretch main/stretch main contrib non-free/g" /etc/apt/sources.li
     && sed -i "s/stretch\/updates main/stretch\/updates main contrib non-free/g" /etc/apt/sources.list \
     && DEBIAN_FRONTEND=noninteractive apt-get update \
     && DEBIAN_FRONTEND=noninteractive apt-get install -qqy --no-install-recommends \
-        apt-transport-https \
         apt-utils \
         ca-certificates \
         gnupg \
@@ -80,7 +79,7 @@ ARG L_VCS_URL="https://github.com/fhem/alexa-fhem-docker/"
 ARG L_VENDOR="FHEM"
 ARG L_LICENSES="MIT"
 ARG L_TITLE="alexa-fhem-${TARGETPLATFORM}"
-ARG L_DESCR="FHEM complementary Docker image for Amazon alexa voice assistant, based on Debian Stretch."
+ARG L_DESCR="FHEM complementary Docker image for Amazon alexa voice assistant, based on Debian Buster."
 
 ARG L_AUTHORS_ALEXAFHEM="https://github.com/justme-1968/alexa-fhem/graphs/contributors"
 ARG L_URL_ALEXAFHEM="https://fhem.de/"
