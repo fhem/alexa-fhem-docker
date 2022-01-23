@@ -1,4 +1,4 @@
-FROM debian:buster-20211220-slim
+FROM node:14.18.3-buster-slim
 ARG TARGETPLATFORM
 
 
@@ -44,22 +44,12 @@ RUN  sed -i "s/stretch main/stretch main contrib non-free/g" /etc/apt/sources.li
 
 ARG ALEXAFHEM_VERSION="0.5.61"
 
-# Add nodejs app layer
-RUN LC_ALL=C curl --retry 3 --retry-connrefused --retry-delay 2 -fsSL https://deb.nodesource.com/setup_14.x | LC_ALL=C bash - \
-      && LC_ALL=C DEBIAN_FRONTEND=noninteractive apt-get install -qqy --no-install-recommends \
-        nodejs=14.* \
-    && if [ ! -e /usr/bin/npm ]; then \
-          LC_ALL=C DEBIAN_FRONTEND=noninteractive apt-get install -qqy --no-install-recommends \
-            npm=5.8.* \
-    ; fi \
-    && npm install -g --unsafe-perm --production \
-        npm \
-    && if [ "${IMAGE_LAYER_NODEJS_EXT}" != "0" ]; then \
+# Add alexa-fhem app layer
+RUN if [ "${IMAGE_LAYER_NODEJS_EXT}" != "0" ]; then \
           npm install -g --unsafe-perm --production \
           alexa-fhem@${ALEXAFHEM_VERSION} \
       ; fi \
-    && LC_ALL=C apt-get autoremove -qqy && LC_ALL=C apt-get clean \
-    && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* ~/.[^.] ~/.??* ~/* 
+    && rm -rf /tmp/* /var/tmp/* ~/.[^.] ~/.??* ~/* 
 
 # Add alexa-fhem app layer
 COPY src/config.json /alexa-fhem.src/alexa-fhem-docker.config.json
