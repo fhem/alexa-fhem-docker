@@ -12,11 +12,11 @@ COPY src/entry.sh /entry.sh
 COPY src/ssh_known_hosts.txt /ssh_known_hosts.txt
 COPY src/health-check.sh /health-check.sh
 
-RUN  sed -i "s/stretch main/stretch main contrib non-free/g" /etc/apt/sources.list \
-    && sed -i "s/stretch-updates main/stretch-updates main contrib non-free/g" /etc/apt/sources.list \
-    && sed -i "s/stretch\/updates main/stretch\/updates main contrib non-free/g" /etc/apt/sources.list \
-    && DEBIAN_FRONTEND=noninteractive apt-get update \
-    && DEBIAN_FRONTEND=noninteractive apt-get install -qqy --no-install-recommends \
+#RUN  sed -i "s/buster main/buster main contrib non-free/g" /etc/apt/sources.list \
+#    && sed -i "s/buster-updates main/buster-updates main contrib non-free/g" /etc/apt/sources.list \
+#    && sed -i "s/buster\/updates main/buster\/updates main contrib non-free/g" /etc/apt/sources.list \
+RUN  && DEBIAN_FRONTEND=noninteractive apt-get update \
+     && DEBIAN_FRONTEND=noninteractive apt-get install -qqy --no-install-recommends \
         apt-utils \
         ca-certificates \
         gnupg \
