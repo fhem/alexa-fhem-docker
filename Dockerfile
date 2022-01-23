@@ -1,7 +1,6 @@
 FROM node:14.18.3-buster-slim
 ARG TARGETPLATFORM
 
-
 ENV TERM xterm
 ENV LANG en_US.UTF-8
 ENV LANGUAGE en_US:en
@@ -15,7 +14,7 @@ COPY src/health-check.sh /health-check.sh
 #RUN  sed -i "s/buster main/buster main contrib non-free/g" /etc/apt/sources.list \
 #    && sed -i "s/buster-updates main/buster-updates main contrib non-free/g" /etc/apt/sources.list \
 #    && sed -i "s/buster\/updates main/buster\/updates main contrib non-free/g" /etc/apt/sources.list \
-RUN  && DEBIAN_FRONTEND=noninteractive apt-get update \
+RUN  DEBIAN_FRONTEND=noninteractive apt-get update \
      && DEBIAN_FRONTEND=noninteractive apt-get install -qqy --no-install-recommends \
         apt-utils \
         ca-certificates \
