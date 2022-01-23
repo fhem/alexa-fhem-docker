@@ -1,7 +1,4 @@
-ARG BASE_IMAGE="debian"
-ARG BASE_IMAGE_TAG="9.13-slim"
-FROM --platform=$TARGETPLATFORM ${BASE_IMAGE}:${BASE_IMAGE_TAG}
-
+FROM debian:stretch-20211220-slim
 ARG TARGETPLATFORM
 
 
@@ -11,7 +8,6 @@ ENV LANGUAGE en_US:en
 ENV LC_ALL en_US.UTF-8
 
 # Install base environment
-COPY ./src/qemu-* /usr/bin/
 COPY src/entry.sh /entry.sh
 COPY src/ssh_known_hosts.txt /ssh_known_hosts.txt
 COPY src/health-check.sh /health-check.sh
@@ -64,7 +60,7 @@ RUN LC_ALL=C curl --retry 3 --retry-connrefused --retry-delay 2 -fsSL https://de
           alexa-fhem@${ALEXAFHEM_VERSION} \
       ; fi \
     && LC_ALL=C apt-get autoremove -qqy && LC_ALL=C apt-get clean \
-    && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* ~/.[^.] ~/.??* ~/* \
+    && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* ~/.[^.] ~/.??* ~/* 
 
 # Add alexa-fhem app layer
 COPY src/config.json /alexa-fhem.src/alexa-fhem-docker.config.json
@@ -114,11 +110,11 @@ LABEL org.fhem.alexa.url=${L_URL_ALEXAFHEM}
 LABEL org.fhem.alexa.documentation=${L_USAGE_ALEXAFHEM}
 LABEL org.fhem.alexa.source=${L_VCS_URL_ALEXAFHEM}
 LABEL org.fhem.alexa.version=${ALEXAFHEM_VERSION}
-LABEL org.fhem.alexa.vendor=${L_VENDOR_ALEXAFHEM}
+LABEL org.fhem.alexa.vendor=${L_VENDOR_ALEXAFHEM}-${TARGETPLATFORM}
 LABEL org.fhem.alexa.licenses=${L_LICENSES_ALEXAFHEM}
 LABEL org.fhem.alexa.description=${L_DESCR_ALEXAFHEM}
 
-RUN echo "org.opencontainers.image.created=${BUILD_DATE}\norg.opencontainers.image.authors=${L_AUTHORS}\norg.opencontainers.image.url=${L_URL}\norg.opencontainers.image.documentation=${L_USAGE}\norg.opencontainers.image.source=${L_VCS_URL}\norg.opencontainers.image.version=${IMAGE_VERSION}\norg.opencontainers.image.revision=${IMAGE_VCS_REF}\norg.opencontainers.image.vendor=${L_VENDOR}\norg.opencontainers.image.licenses=${L_LICENSES}\norg.opencontainers.image.title=${L_TITLE}\norg.opencontainers.image.description=${L_DESCR}\norg.fhem.alexa.authors=${L_AUTHORS_ALEXAFHEM}\norg.fhem.alexa.url=${L_URL_ALEXAFHEM}\norg.fhem.alexa.documentation=${L_USAGE_ALEXAFHEM}\norg.fhem.alexa.source=${L_VCS_URL_ALEXAFHEM}\norg.fhem.alexa.version=${ALEXAFHEM_VERSION}\norg.fhem.alexa.revision=${VCS_REF}\norg.fhem.alexa.vendor=${L_VENDOR_ALEXAFHEM}\norg.fhem.alexa.licenses=${L_LICENSES_ALEXAFHEM}\norg.fhem.alexa.description=${L_DESCR_ALEXAFHEM}" > /image_info
+RUN echo "org.opencontainers.image.created=${BUILD_DATE}\norg.opencontainers.image.authors=${L_AUTHORS}\norg.opencontainers.image.url=${L_URL}\norg.opencontainers.image.documentation=${L_USAGE}\norg.opencontainers.image.source=${L_VCS_URL}\norg.opencontainers.image.version=${IMAGE_VERSION}\norg.opencontainers.image.revision=${IMAGE_VCS_REF}\norg.opencontainers.image.vendor=${L_VENDOR}-${TARGETPLATFORM}\norg.opencontainers.image.licenses=${L_LICENSES}\norg.opencontainers.image.title=${L_TITLE}\norg.opencontainers.image.description=${L_DESCR}\norg.fhem.alexa.authors=${L_AUTHORS_ALEXAFHEM}\norg.fhem.alexa.url=${L_URL_ALEXAFHEM}\norg.fhem.alexa.documentation=${L_USAGE_ALEXAFHEM}\norg.fhem.alexa.source=${L_VCS_URL_ALEXAFHEM}\norg.fhem.alexa.version=${ALEXAFHEM_VERSION}\norg.fhem.alexa.revision=${VCS_REF}\norg.fhem.alexa.vendor=${L_VENDOR_ALEXAFHEM}\norg.fhem.alexa.licenses=${L_LICENSES_ALEXAFHEM}\norg.fhem.alexa.description=${L_DESCR_ALEXAFHEM}" > /image_info
 
 
 VOLUME [ "/alexa-fhem" ]

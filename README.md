@@ -22,11 +22,11 @@ Currently outdated but still available
         docker run -d --name alexa-fhem -p 3000:3000 fhem/alexa-fhem
 
 ### From Github container registry
-Updated version, only with :dev Tag
+Updated version, only with Version tags
 - NodeJS 14
 - Alexa-Fhem 0.5.61
 
-        docker pull ghcr.io/fhem/fhem/alexa-fhem:dev
+        docker pull ghcr.io/fhem/fhem/alexa-fhem:1.0.3
 
 #### To start your container right away:
 
@@ -47,21 +47,19 @@ You may want to have a look to the [alexa-fhem documentation](https://wiki.fhem.
 
 
 ### Image flavors
-This image provides 2 different variants:
+This image provides different variants:
 
-- `latest` (default)
-- `dev`
+- `latest` (default, can introduce breaking changes)
+- `1.0.3` ( latest released Version. Can be a prerelease version)
+- `1` ( latest stable release in Major v1)
+- `dev` (development tag, not updated anymore)
 
 You can use one of those variants by adding them to the docker image name like this:
 
 	docker pull fhem/alexa-fhem:latest
-	docker pull ghcr.io/fhem/fhem/alexa-fhem:dev
+	docker pull ghcr.io/fhem/fhem/alexa-fhem:1.0.3
 
 If you do not specify any variant, `latest` will always be the default.
-
-`latest` will give you the last as stable known Docker image.
-`dev` will give you the latest development Docker image, which is more up to-date
-
 
 ### Supported platforms
 This is a multi-platform image, providing support for the following platforms:
@@ -69,9 +67,9 @@ This is a multi-platform image, providing support for the following platforms:
 
 Linux:
 
-- `x86-64/AMD64` [Link](https://hub.docker.com/r/fhem/alexa-fhem-amd64_linux/)
-- `ARM32v7, armhf` [Link](https://hub.docker.com/r/fhem/alexa-fhem-arm32v7_linux/)
-- `ARM64v8, arm64` [Link](https://hub.docker.com/r/fhem/alexa-fhem-arm64v8_linux/)
+- `x86-64/AMD64` 
+- `ARM32v7, armhf` 
+- `ARM64v8, arm64` 
 
 
 Windows:
@@ -80,7 +78,7 @@ Windows:
 
 
 The main repository will allow you to install on any of these platforms.
-In case you would like to specifically choose your platform, go to the platform-related repository by clicking on the respective link above.
+In case you would like to specifically choose your platform, go to the platform-related section in the container repository.
 
 The platform repositories will also allow you to choose more specific build tags beside the rolling tags latest or dev.
 
