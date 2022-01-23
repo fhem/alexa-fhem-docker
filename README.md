@@ -23,7 +23,7 @@ Currently outdated but still available
 ### From Github container registry
 Updated version, only with Version tags
 - NodeJS 14
-- Alexa-Fhem 0.5.62
+- Alexa-Fhem 0.5.61
 
         docker pull ghcr.io/fhem/fhem/alexa-fhem:1.0.3
 
