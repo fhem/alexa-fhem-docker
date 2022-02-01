@@ -89,4 +89,4 @@ if [ -s /pre-start.sh ]; then
 fi
 
 echo 'Starting alexa-fhem ...'
-su - alexa-fhem -c "cd "${ALEXAFHEM_DIR}"; /usr/lib/node_modules/alexa-fhem/bin/alexa --dockerDetached"
+su - alexa-fhem -c "cd "${ALEXAFHEM_DIR}"; /usr/local/bin/alexa-fhem --dockerDetached"
