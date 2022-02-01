@@ -8,24 +8,13 @@ A [FHEM](https://fhem.de/) complementary Docker image for Amazon alexa voice ass
 ## Installation
 Pre-build images are available on [Docker Hub](https://hub.docker.com/r/fhem/alexa-fhem) and on [Github Container Registry](https://github.com/orgs/fhem/packages/container/package/fhem/alexa-fhem).
 
-### From Docker Hub
-Currently outdated but still available
-- NodeJS 10
-- Alexa-Fhem 0.5.27
-
-
-        docker pull fhem/alexa-fhem
-
-#### To start your container right away:
-
-        docker run -d --name alexa-fhem -p 3000:3000 fhem/alexa-fhem
 
 ### From Github container registry
 Updated version, only with Version tags
 - NodeJS 14
 - Alexa-Fhem 0.5.61
 
-        docker pull ghcr.io/fhem/fhem/alexa-fhem:1.0.3
+        docker pull ghcr.io/fhem/fhem/alexa-fhem:2.0.0
 
 #### To start your container right away:
 
@@ -49,14 +38,15 @@ You may want to have a look to the [alexa-fhem documentation](https://wiki.fhem.
 This image provides different variants:
 
 - `latest` (default, can introduce breaking changes)
-- `1.0.3` ( latest released Version. Can be a prerelease version)
-- `1` ( latest stable release in Major v1)
+- `2.0.0` ( latest released Version. Can be a prerelease version)
+- `2` ( latest stable release in Major v2)
 - `dev` (development tag, not updated anymore)
 
 You can use one of those variants by adding them to the docker image name like this:
 
-	docker pull fhem/alexa-fhem:latest
-	docker pull ghcr.io/fhem/fhem/alexa-fhem:1.0.3
+	docker pull ghcr.io/fhem/fhem/alexa-fhem:latest
+        docker pull ghcr.io/fhem/fhem/alexa-fhem:2	
+	docker pull ghcr.io/fhem/fhem/alexa-fhem:2.0.0
 
 If you do not specify any variant, `latest` will always be the default.
 
