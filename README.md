@@ -24,7 +24,7 @@ docker run -d --name alexa-fhem -p 3000:3000 ghcr.io/fhem/fhem/alexa-fhem:dev
 ### Permanent storage
 Usually you want to keep your FHEM setup after a container was destroyed (or re-build) so it is a good idea to provide an external directory on your Docker host to keep that data:
 
-    docker run -d --name alexa-fhem -p 3000:3000 -v /some/host/directory:/alexa-fhem fhem/alexa-fhem 
+    docker run -d --name alexa-fhem -p 3000:3000 -v /some/host/directory:/alexa-fhem ghcr.io/fhem/fhem/alexa-fhem:2 
 
 #### Verify if container is runnung
 After starting your container, you may check the web server availability:
@@ -112,8 +112,7 @@ networks:
 
 services:
   alexa-fhem:
-    # image: fhem/alexa-fhem:latest
-    image: ghcr.io/fhem/fhem/alexa-fhem:dev
+    image: ghcr.io/fhem/fhem/alexa-fhem:2
     restart: always
     networks:
      - fhem_net
