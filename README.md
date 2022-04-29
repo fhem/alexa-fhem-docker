@@ -105,13 +105,26 @@ networks:
     ipam:
       driver: default
       config:
-        - subnet: 172.27.0.0/24
+        - subnet: 172.27.0.0/28
           gateway: 172.27.0.1
         - subnet: fd00:0:0:0:27::/80
           gateway: fd00:0:0:0:27::1
 
+
 services:
-  alexa-fhem:
+  # Minimum example w/o any custom environment variables of fhem container
+  fhem:
+    image: ghcr.io/fhem/fhem/fhem-docker:bullseye
+    restart: always
+    networks:
+      - fhem_net
+    ports:
+      - "8083:8083"
+    volumes:
+      - "./fhem/:/opt/fhem/"
+
+ # Minimum example w/o any custom environment variables of alexa-fhem container
+ alexa-fhem:
     image: ghcr.io/fhem/fhem/alexa-fhem:2
     restart: always
     networks:
@@ -125,6 +138,31 @@ services:
       ALEXAFHEM_GID: 6062
       TZ: Europe/Berlin
 ```
+
+If you use another name for your fhem container `fhem`, or want to use another tcp port for fhemweb connections, then you have to change the alexa-fhem config file in the volume for your alea-fhem container `./alexa-fhem/alexa-fhem.json`.
+
+In the connections part, servername and port must match withhin fhem configuration:
+```
+"connections": [
+    {
+      "name": "FHEM",
+      "webname": "fhem",
+      "filter": "alexaName=..*",
+      "uid": "6062",
+      "port": "8083",
+      "server": "fhem"
+    }
+  ]
+```
+
+
+Within FHEM, you have to specify a alexa device and add attribute to identify the host. In this example, the container name is `alexa-fhem`, so this is also the hostname.
+
+```
+define alexa alexa
+attr alexa alexaFHEM-host alexa-fhem
+```
+
 
 ___
 [Production Build and Test](https://github.com/fhem/fhem/alexa-fhem-docker/workflows/Build%20and%20Test/badge.svg?branch=master)
