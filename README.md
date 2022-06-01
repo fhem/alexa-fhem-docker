@@ -12,7 +12,7 @@ Pre-build images are available on [Docker Hub](https://hub.docker.com/r/fhem/ale
 ### From Github container registry
 Updated version, only with Version tags
 - NodeJS 14
-- Alexa-Fhem 0.5.61
+- Alexa-Fhem 0.5.62
 
         docker pull ghcr.io/fhem/fhem/alexa-fhem:2.0.0
 
