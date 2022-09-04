@@ -70,7 +70,7 @@ jobs:
             BUILD_DATE=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.created'] }}
             IMAGE_VERSION=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.version'] }}
             IMAGE_VCS_REF=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.revision'] }}
-            ALEXAFHEM_VERSION=0.5.62
+            ALEXAFHEM_VERSION=0.5.64
             L_USAGE=${{ github.server_url }}/${{ github.repository }}/blob/${{ github.sha }}/README.md
             L_VCS_URL=${{ github.server_url }}/${{ github.repository }}/
             L_AUTHORS=${{ github.server_url }}/${{ github.repository }}/graphs/contributors
@@ -156,7 +156,7 @@ jobs:
             BUILD_DATE=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.created'] }}
             IMAGE_VERSION=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.version'] }}
             IMAGE_VCS_REF=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.revision'] }}
-            ALEXAFHEM_VERSION=0.5.62
+            ALEXAFHEM_VERSION=0.5.64
             L_USAGE=${{ github.server_url }}/${{ github.repository }}/blob/${{ github.sha }}/README.md
             L_VCS_URL=${{ github.server_url }}/${{ github.repository }}/
             L_AUTHORS=${{ github.server_url }}/${{ github.repository }}/graphs/contributors

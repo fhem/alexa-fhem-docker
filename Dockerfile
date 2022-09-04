@@ -41,7 +41,7 @@ RUN  DEBIAN_FRONTEND=noninteractive apt-get update \
     && apt-get autoremove -qqy && apt-get clean \
     && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* ~/.[^.] ~/.??* ~/*
 
-ARG ALEXAFHEM_VERSION="0.5.62"
+ARG ALEXAFHEM_VERSION="0.5.64"
 
 # Add alexa-fhem app layer
 RUN if [ "${IMAGE_LAYER_NODEJS_EXT}" != "0" ]; then \

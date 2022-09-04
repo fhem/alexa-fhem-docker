@@ -12,13 +12,13 @@ Pre-build images are available on [Docker Hub](https://hub.docker.com/r/fhem/ale
 ### From Github container registry
 Updated version, only with Version tags
 - NodeJS 14
-- Alexa-Fhem 0.5.62
+- Alexa-Fhem 0.5.64
 
-        docker pull ghcr.io/fhem/fhem/alexa-fhem:2.0.0
+        docker pull ghcr.io/fhem/fhem/alexa-fhem:2
 
 #### To start your container right away:
 
-docker run -d --name alexa-fhem -p 3000:3000 ghcr.io/fhem/fhem/alexa-fhem:dev
+docker run -d --name alexa-fhem -p 3000:3000 ghcr.io/fhem/fhem/alexa-fhem:2
 
 
 ### Permanent storage
@@ -38,15 +38,15 @@ You may want to have a look to the [alexa-fhem documentation](https://wiki.fhem.
 This image provides different variants:
 
 - `latest` (default, can introduce breaking changes)
-- `2.0.0` ( latest released Version. Can be a prerelease version)
+- `2.0.7` ( latest released Version. Can be a prerelease version)
 - `2` ( latest stable release in Major v2)
 - `dev` (development tag, not updated anymore)
 
 You can use one of those variants by adding them to the docker image name like this:
 
 	docker pull ghcr.io/fhem/fhem/alexa-fhem:latest
-        docker pull ghcr.io/fhem/fhem/alexa-fhem:2	
-	docker pull ghcr.io/fhem/fhem/alexa-fhem:2.0.0
+  docker pull ghcr.io/fhem/fhem/alexa-fhem:2	
+	docker pull ghcr.io/fhem/fhem/alexa-fhem:2.0.7
 
 If you do not specify any variant, `latest` will always be the default.
 
