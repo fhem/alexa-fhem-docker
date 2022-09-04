@@ -1,4 +1,4 @@
-FROM node:14.20.0-buster-slim
+FROM node:16.17.0-buster-slim
 ARG TARGETPLATFORM
 
 ENV TERM xterm
