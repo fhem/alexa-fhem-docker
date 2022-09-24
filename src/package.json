@@ -1,0 +1,6 @@
+{
+  "name": "alexa-fhem-docker",
+  "dependencies": {
+    "alexa-fhem": "^0.5.64"
+  }
+}
