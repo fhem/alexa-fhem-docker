@@ -1,4 +1,5 @@
 FROM node:14.20.0-buster-slim
+ENV NODE_ENV=production
 ARG TARGETPLATFORM
 
 ENV TERM xterm
@@ -10,6 +11,7 @@ ENV LC_ALL en_US.UTF-8
 COPY src/entry.sh /entry.sh
 COPY src/ssh_known_hosts.txt /ssh_known_hosts.txt
 COPY src/health-check.sh /health-check.sh
+
 
 #RUN  sed -i "s/buster main/buster main contrib non-free/g" /etc/apt/sources.list \
 #    && sed -i "s/buster-updates main/buster-updates main contrib non-free/g" /etc/apt/sources.list \
@@ -44,10 +46,10 @@ RUN  DEBIAN_FRONTEND=noninteractive apt-get update \
 ARG ALEXAFHEM_VERSION="0.5.64"
 
 # Add alexa-fhem app layer
+COPY src/package.json package-lock.json
 RUN if [ "${IMAGE_LAYER_NODEJS_EXT}" != "0" ]; then \
           npm install -g --unsafe-perm --production \
-          alexa-fhem@${ALEXAFHEM_VERSION} \
-      ; fi \
+    ; fi \
     && rm -rf /tmp/* /var/tmp/* ~/.[^.] ~/.??* ~/* 
 
 # Add alexa-fhem app layer
