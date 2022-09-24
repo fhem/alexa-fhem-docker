@@ -18,7 +18,6 @@ COPY src/health-check.sh /health-check.sh
 #    && sed -i "s/buster\/updates main/buster\/updates main contrib non-free/g" /etc/apt/sources.list \
 RUN  DEBIAN_FRONTEND=noninteractive apt-get update \
      && DEBIAN_FRONTEND=noninteractive apt-get install -qqy --no-install-recommends \
-        apt-utils \
         ca-certificates \
         gnupg \
         locales \
@@ -46,7 +45,7 @@ RUN  DEBIAN_FRONTEND=noninteractive apt-get update \
 ARG ALEXAFHEM_VERSION="0.5.64"
 
 # Add alexa-fhem app layer
-COPY src/package.json package-lock.json
+COPY src/package.json package.json
 RUN if [ "${IMAGE_LAYER_NODEJS_EXT}" != "0" ]; then \
           npm install -g --unsafe-perm --production \
     ; fi \
