@@ -33,7 +33,7 @@ jobs:
            echo "::set-output name=image_base::$(grep '^FROM' Dockerfile | cut -d ' ' -f2 | cut -d ':' -f2 | cut -d '-' -f2,3)"
       - name: Update docs
         run: |
-            sed -e "s/{ALEXAFHEM_VERSION}/${{ steps.split_alexafhemV.outputs.result}}/" -e "s/{NODE_VERSION}/${{ steps.extract_image.outputs.image_version}}/" -e "s/{DEBIAN_RELEASE}/${{ steps.extract_image.outputs.image_base}}/" < README.tmpl > README.md
+            sed -e "s/{ALEXAFHEM_VERSION}/${{ steps.split_alexafhemV.outputs.result}}/g" -e "s/{NODE_VERSION}/${{ steps.extract_image.outputs.image_version}}/g" -e "s/{DEBIAN_RELEASE}/${{ steps.extract_image.outputs.image_base}}/g" < README.tmpl > README.md
       - uses: stefanzweifel/git-auto-commit-action@v4.15.0
         with:
           file_pattern: 'README.md'
