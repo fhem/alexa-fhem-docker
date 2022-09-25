@@ -21,10 +21,9 @@ RUN  DEBIAN_FRONTEND=noninteractive apt-get update \
         gnupg \
         locales \
     \
-    && DEBIAN_FRONTEND=noninteractive dpkg-reconfigure locales \
-    && echo "en_US.UTF-8 UTF-8" > /etc/locale.gen \
-    && locale-gen \
-    && /usr/sbin/update-locale LANG=en_US.UTF-8 \
+    && export LC_ALL=en_US.UTF-8
+    && export LANG=en_US.UTF-8
+    && locale-gen en_US.UTF-8
     \
     && ln -sf /usr/share/zoneinfo/Europe/Berlin /etc/localtime \
     && echo "Europe/Berlin" > /etc/timezone \
