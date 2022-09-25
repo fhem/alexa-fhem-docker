@@ -2,13 +2,18 @@
 
 cd "$(readlink -f "$(dirname "$BASH_SOURCE")")"/..
 
+IMAGE="${1:-$( docker images | grep '^fhem/*' | grep -v "<none>" | awk '{print $3}' | uniq )}"
+
 echo -e "\n\n"
-docker images
+docker images 
 echo -e "\n\n"
 rm -rf ./failed_variants
 RETURNCODE=0
 
-for ID in $( docker images | grep '^fhem/*' | grep -v "<none>" | grep -P ' +[0-9]+\.[0-9]+.+' | awk '{print $3}' | uniq ); do
+#dockerimages=$( docker images | grep '^fhem/*' | grep -v "<none>" | grep -P ' +[0-9]+\.[0-9]+.+' | awk '{print $3}' | uniq )
+
+
+for ID in $IMAGE; do
   echo "Booting up container for variant $ID ..."
   CONTAINER=$( docker run -d -ti --health-interval=60s --health-timeout=10s --health-start-period=150s --health-retries=5 $ID )
   docker container ls | grep 'fhem/.*'

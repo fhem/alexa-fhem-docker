@@ -79,7 +79,7 @@ jobs:
         run: |
           docker image inspect ${{ fromJSON(steps.meta.outputs.json).tags[0] }}
           docker history ${{ fromJSON(steps.meta.outputs.json).tags[0] }}
-          ./scripts/test-integration.sh;
+          ./scripts/test-integration.sh ${{ fromJSON(steps.meta.outputs.json).tags[0] }};
 
   published_build:
     runs-on: ubuntu-latest
