@@ -1,6 +1,6 @@
 # Docker image for alexa-fhem
 A [FHEM](https://fhem.de/) complementary Docker image for Amazon alexa voice assistant, based on 
-- [Node 14 - Debian Buster](https://hub.docker.com/_/node?tab=tags&page=1&name=14-buster-slim)
+- [Node {NODE_VERSION} - Debian {DEBIAN_RELEASE}](https://hub.docker.com/_/node?tab=tags&page=1&name={NODE_VERSION}-{DEBIAN_RELEASE})
 - [alexa_fhem](https://www.npmjs.com/package/alexa-fhem?activeTab=versions)
 
 
@@ -11,8 +11,8 @@ Pre-build images are available on [Docker Hub](https://hub.docker.com/r/fhem/ale
 
 ### From Github container registry
 Updated version, only with Version tags
-- NodeJS 14
-- Alexa-Fhem 0.5.64
+- NodeJS {NODE_VERSION}
+- Alexa-Fhem {ALEXAFHEM_VERSION}
 
         docker pull ghcr.io/fhem/fhem/alexa-fhem:2
 
