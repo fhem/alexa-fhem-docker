@@ -48,6 +48,7 @@ ARG ALEXAFHEM_VERSION="0.5.64"
 COPY src/package.json package.json
 RUN if [ "${IMAGE_LAYER_NODEJS_EXT}" != "0" ]; then \
           npm install -g --unsafe-perm --production \
+          && ln -s /usr/local/lib/node_modules/alexa-fhem-docker/node_modules/alexa-fhem/bin/alexa /usr/local/bin/alexa-fhem \
     ; fi \
     && rm -rf /tmp/* /var/tmp/* ~/.[^.] ~/.??* ~/* 
 
