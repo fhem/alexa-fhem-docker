@@ -35,11 +35,11 @@ jobs:
 
 
       - name: Build image and run integrationtests (amd64)
-        id: build_and_run_integrationtests
+        id: build_and_run_integrationtest
         uses: ./.github/actions/integrationtest
         with:
            PLATTFORM: linux/amd64
-           FHEMPY_VERSION: ${{ steps.split_alexafhemV.outputs.result }}
+           ALEXAFHEM_VERSION: ${{ steps.split_alexafhemV.outputs.result }}
 
   published_build:
     runs-on: ubuntu-latest

@@ -5,7 +5,7 @@ inputs:
     description: 'Plattform for which to build the image, only a single plattform can be specified here'
     required: false
     default: 'linux/amd64'
-  ALEXAFHEMY_VERSION:  
+  ALEXAFHEM_VERSION:  
     description: 'Which Version of ALEXA_FHEM is used, this will be passed as build argument'
     required: true
     default: '0.5.64'
@@ -35,7 +35,7 @@ runs:
           cache-from: | 
             type=gha,scope=verify_runtime_${{ inputs.PLATTFORM }}
           cache-to: type=gha,mode=max,scope=verify_runtime_${{ inputs.PLATTFORM }}
-          build-args: ALEXAFHEMY_VERSION=${{ inputs.FHEMPY_VERSION }}
+          build-args: ALEXAFHEMY_VERSION=${{ inputs.ALEXAFHEM_VERSION }}
           #target: runtime
 
       - name: Run integration tests
