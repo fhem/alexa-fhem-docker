@@ -1,4 +1,4 @@
-FROM node:14.20.0-buster-slim
+FROM node:14.20.1-buster-slim
 ENV NODE_ENV=production
 ARG TARGETPLATFORM
 
