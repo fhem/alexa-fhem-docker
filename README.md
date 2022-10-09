@@ -1,7 +1,6 @@
 # Docker image for alexa-fhem
 A [FHEM](https://fhem.de/) complementary Docker image for Amazon alexa voice assistant, based on 
-- [Debian Stretch](https://hub.docker.com/_/debian?tab=tags&page=1&ordering=last_updated&name=stretch)
-- [NodeJS](https://nodejs.org/en/)
+- [Node 14 - Debian Buster](https://hub.docker.com/_/node?tab=tags&page=1&name=14-buster-slim)
 - [alexa_fhem](https://www.npmjs.com/package/alexa-fhem?activeTab=versions)
 
 
@@ -9,34 +8,23 @@ A [FHEM](https://fhem.de/) complementary Docker image for Amazon alexa voice ass
 ## Installation
 Pre-build images are available on [Docker Hub](https://hub.docker.com/r/fhem/alexa-fhem) and on [Github Container Registry](https://github.com/orgs/fhem/packages/container/package/fhem/alexa-fhem).
 
-### From Docker Hub
-Currently outdated but still available
-- NodeJS 10
-- Alexa-Fhem 0.5.27
-
-
-        docker pull fhem/alexa-fhem
-
-#### To start your container right away:
-
-        docker run -d --name alexa-fhem -p 3000:3000 fhem/alexa-fhem
 
 ### From Github container registry
 Updated version, only with Version tags
 - NodeJS 14
-- Alexa-Fhem 0.5.61
+- Alexa-Fhem 0.5.64
 
-        docker pull ghcr.io/fhem/fhem/alexa-fhem:1.0.3
+        docker pull ghcr.io/fhem/fhem/alexa-fhem:2
 
 #### To start your container right away:
 
-docker run -d --name alexa-fhem -p 3000:3000 ghcr.io/fhem/fhem/alexa-fhem:dev
+docker run -d --name alexa-fhem -p 3000:3000 ghcr.io/fhem/fhem/alexa-fhem:2
 
 
 ### Permanent storage
 Usually you want to keep your FHEM setup after a container was destroyed (or re-build) so it is a good idea to provide an external directory on your Docker host to keep that data:
 
-    docker run -d --name alexa-fhem -p 3000:3000 -v /some/host/directory:/alexa-fhem fhem/alexa-fhem 
+    docker run -d --name alexa-fhem -p 3000:3000 -v /some/host/directory:/alexa-fhem ghcr.io/fhem/fhem/alexa-fhem:2 
 
 #### Verify if container is runnung
 After starting your container, you may check the web server availability:
@@ -50,14 +38,15 @@ You may want to have a look to the [alexa-fhem documentation](https://wiki.fhem.
 This image provides different variants:
 
 - `latest` (default, can introduce breaking changes)
-- `1.0.3` ( latest released Version. Can be a prerelease version)
-- `1` ( latest stable release in Major v1)
+- `2.0.7` ( latest released Version. Can be a prerelease version)
+- `2` ( latest stable release in Major v2)
 - `dev` (development tag, not updated anymore)
 
 You can use one of those variants by adding them to the docker image name like this:
 
-	docker pull fhem/alexa-fhem:latest
-	docker pull ghcr.io/fhem/fhem/alexa-fhem:1.0.3
+	docker pull ghcr.io/fhem/fhem/alexa-fhem:latest
+  docker pull ghcr.io/fhem/fhem/alexa-fhem:2	
+	docker pull ghcr.io/fhem/fhem/alexa-fhem:2.0.7
 
 If you do not specify any variant, `latest` will always be the default.
 
@@ -116,15 +105,27 @@ networks:
     ipam:
       driver: default
       config:
-        - subnet: 172.27.0.0/24
+        - subnet: 172.27.0.0/28
           gateway: 172.27.0.1
         - subnet: fd00:0:0:0:27::/80
           gateway: fd00:0:0:0:27::1
 
+
 services:
-  alexa-fhem:
-    # image: fhem/alexa-fhem:latest
-    image: ghcr.io/fhem/fhem/alexa-fhem:dev
+  # Minimum example w/o any custom environment variables of fhem container
+  fhem:
+    image: ghcr.io/fhem/fhem/fhem-docker:bullseye
+    restart: always
+    networks:
+      - fhem_net
+    ports:
+      - "8083:8083"
+    volumes:
+      - "./fhem/:/opt/fhem/"
+
+ # Minimum example w/o any custom environment variables of alexa-fhem container
+ alexa-fhem:
+    image: ghcr.io/fhem/fhem/alexa-fhem:2
     restart: always
     networks:
      - fhem_net
@@ -137,6 +138,31 @@ services:
       ALEXAFHEM_GID: 6062
       TZ: Europe/Berlin
 ```
+
+If you use another name for your fhem container `fhem`, or want to use another tcp port for fhemweb connections, then you have to change the alexa-fhem config file in the volume for your alea-fhem container `./alexa-fhem/alexa-fhem.json`.
+
+In the connections part, servername and port must match withhin fhem configuration:
+```
+"connections": [
+    {
+      "name": "FHEM",
+      "webname": "fhem",
+      "filter": "alexaName=..*",
+      "uid": "6062",
+      "port": "8083",
+      "server": "fhem"
+    }
+  ]
+```
+
+
+Within FHEM, you have to specify a alexa device and add attribute to identify the host. In this example, the container name is `alexa-fhem`, so this is also the hostname.
+
+```
+define alexa alexa
+attr alexa alexaFHEM-host alexa-fhem
+```
+
 
 ___
 [Production Build and Test](https://github.com/fhem/fhem/alexa-fhem-docker/workflows/Build%20and%20Test/badge.svg?branch=master)

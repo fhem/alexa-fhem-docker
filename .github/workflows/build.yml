@@ -18,21 +18,21 @@ jobs:
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
       - name: Checkout this repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           fetch-depth: 0
 
       - name: Docker Setup QEMU
-        uses: docker/setup-qemu-action@v1.2.0
+        uses: docker/setup-qemu-action@v2.0.0
         with:
           image: tonistiigi/binfmt:latest
           platforms: all
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v1
+        uses: docker/setup-buildx-action@v2
       
       - name: Cache Docker layers
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: /tmp/.buildx-cache
           key: ${{ runner.os }}-build-${{ github.sha }}
@@ -42,7 +42,7 @@ jobs:
 
       - name: Docker meta
         id: meta
-        uses: docker/metadata-action@v3
+        uses: docker/metadata-action@v4
         with:
           images: fhem/alexa-fhem
           flavor: |
@@ -54,7 +54,7 @@ jobs:
             type=ref,event=pr
 
       - name: Build for test full blown amd64 
-        uses: docker/build-push-action@v2
+        uses: docker/build-push-action@v3
         id: docker_build
         with:
           context: .
@@ -70,7 +70,7 @@ jobs:
             BUILD_DATE=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.created'] }}
             IMAGE_VERSION=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.version'] }}
             IMAGE_VCS_REF=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.revision'] }}
-            ALEXAFHEM_VERSION=0.5.61
+            ALEXAFHEM_VERSION=0.5.64
             L_USAGE=${{ github.server_url }}/${{ github.repository }}/blob/${{ github.sha }}/README.md
             L_VCS_URL=${{ github.server_url }}/${{ github.repository }}/
             L_AUTHORS=${{ github.server_url }}/${{ github.repository }}/graphs/contributors
@@ -79,7 +79,7 @@ jobs:
         run: |
           docker image inspect ${{ fromJSON(steps.meta.outputs.json).tags[0] }}
           docker history ${{ fromJSON(steps.meta.outputs.json).tags[0] }}
-          ./scripts/test-integration.sh;
+          ./scripts/test-integration.sh ${{ fromJSON(steps.meta.outputs.json).tags[0] }};
 
   published_build:
     runs-on: ubuntu-latest
@@ -88,21 +88,21 @@ jobs:
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
       - name: Checkout this repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           fetch-depth: 0
 
       - name: Docker Setup QEMU
-        uses: docker/setup-qemu-action@v1.2.0
+        uses: docker/setup-qemu-action@v2.0.0
         with:
           image: tonistiigi/binfmt:latest
           platforms: all
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v1
+        uses: docker/setup-buildx-action@v2
       
       - name: Cache Docker layers
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: /tmp/.buildx-cache
           key: ${{ runner.os }}-buildx-${{ github.sha }}
@@ -112,9 +112,11 @@ jobs:
 
       - name: Docker meta
         id: meta
-        uses: docker/metadata-action@v3
+        uses: docker/metadata-action@v4
         with:
-          images: ghcr.io/${{ github.repository_owner }}/fhem/alexa-fhem
+          images: |
+            ghcr.io/${{ github.repository_owner }}/fhem/alexa-fhem
+            fhem/alexa-fhem
           flavor: |
              latest= ${{ fromJSON('["auto", "false"]')[github.event.release.prerelease == 1] }}
           tags: |
@@ -125,14 +127,21 @@ jobs:
             
       - name: Login to GitHub Container Registry
         if: github.event_name == 'release'
-        uses: docker/login-action@v1 
+        uses: docker/login-action@v2 
         with:
           registry: ghcr.io
           username: ${{ github.repository_owner }}
           password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Login to DockerHub
+        if: github.event_name == 'release'
+        uses: docker/login-action@v2 
+        with:
+          username: ${{ secrets.DOCKER_HUB_USERNAME }}
+          password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
           
       - name: Build and push cross compiled full blown image on supported platforms
-        uses: docker/build-push-action@v2
+        uses: docker/build-push-action@v3
         with:
           context: .
           load: false  
@@ -147,7 +156,7 @@ jobs:
             BUILD_DATE=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.created'] }}
             IMAGE_VERSION=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.version'] }}
             IMAGE_VCS_REF=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.revision'] }}
-            ALEXAFHEM_VERSION=0.5.61
+            ALEXAFHEM_VERSION=0.5.64
             L_USAGE=${{ github.server_url }}/${{ github.repository }}/blob/${{ github.sha }}/README.md
             L_VCS_URL=${{ github.server_url }}/${{ github.repository }}/
             L_AUTHORS=${{ github.server_url }}/${{ github.repository }}/graphs/contributors

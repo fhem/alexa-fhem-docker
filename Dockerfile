@@ -1,6 +1,5 @@
-FROM debian:stretch-20211220-slim
+FROM node:14.20.1-buster-slim
 ARG TARGETPLATFORM
-
 
 ENV TERM xterm
 ENV LANG en_US.UTF-8
@@ -12,12 +11,11 @@ COPY src/entry.sh /entry.sh
 COPY src/ssh_known_hosts.txt /ssh_known_hosts.txt
 COPY src/health-check.sh /health-check.sh
 
-RUN  sed -i "s/stretch main/stretch main contrib non-free/g" /etc/apt/sources.list \
-    && sed -i "s/stretch-updates main/stretch-updates main contrib non-free/g" /etc/apt/sources.list \
-    && sed -i "s/stretch\/updates main/stretch\/updates main contrib non-free/g" /etc/apt/sources.list \
-    && DEBIAN_FRONTEND=noninteractive apt-get update \
-    && DEBIAN_FRONTEND=noninteractive apt-get install -qqy --no-install-recommends \
-        apt-transport-https \
+#RUN  sed -i "s/buster main/buster main contrib non-free/g" /etc/apt/sources.list \
+#    && sed -i "s/buster-updates main/buster-updates main contrib non-free/g" /etc/apt/sources.list \
+#    && sed -i "s/buster\/updates main/buster\/updates main contrib non-free/g" /etc/apt/sources.list \
+RUN  DEBIAN_FRONTEND=noninteractive apt-get update \
+     && DEBIAN_FRONTEND=noninteractive apt-get install -qqy --no-install-recommends \
         apt-utils \
         ca-certificates \
         gnupg \
@@ -43,24 +41,14 @@ RUN  sed -i "s/stretch main/stretch main contrib non-free/g" /etc/apt/sources.li
     && apt-get autoremove -qqy && apt-get clean \
     && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* ~/.[^.] ~/.??* ~/*
 
-ARG ALEXAFHEM_VERSION="0.5.61"
+ARG ALEXAFHEM_VERSION="0.5.64"
 
-# Add nodejs app layer
-RUN LC_ALL=C curl --retry 3 --retry-connrefused --retry-delay 2 -fsSL https://deb.nodesource.com/setup_14.x | LC_ALL=C bash - \
-      && LC_ALL=C DEBIAN_FRONTEND=noninteractive apt-get install -qqy --no-install-recommends \
-        nodejs=14.* \
-    && if [ ! -e /usr/bin/npm ]; then \
-          LC_ALL=C DEBIAN_FRONTEND=noninteractive apt-get install -qqy --no-install-recommends \
-            npm=5.8.* \
-    ; fi \
-    && npm install -g --unsafe-perm --production \
-        npm \
-    && if [ "${IMAGE_LAYER_NODEJS_EXT}" != "0" ]; then \
+# Add alexa-fhem app layer
+RUN if [ "${IMAGE_LAYER_NODEJS_EXT}" != "0" ]; then \
           npm install -g --unsafe-perm --production \
           alexa-fhem@${ALEXAFHEM_VERSION} \
       ; fi \
-    && LC_ALL=C apt-get autoremove -qqy && LC_ALL=C apt-get clean \
-    && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* ~/.[^.] ~/.??* ~/* 
+    && rm -rf /tmp/* /var/tmp/* ~/.[^.] ~/.??* ~/* 
 
 # Add alexa-fhem app layer
 COPY src/config.json /alexa-fhem.src/alexa-fhem-docker.config.json
@@ -80,7 +68,7 @@ ARG L_VCS_URL="https://github.com/fhem/alexa-fhem-docker/"
 ARG L_VENDOR="FHEM"
 ARG L_LICENSES="MIT"
 ARG L_TITLE="alexa-fhem-${TARGETPLATFORM}"
-ARG L_DESCR="FHEM complementary Docker image for Amazon alexa voice assistant, based on Debian Stretch."
+ARG L_DESCR="FHEM complementary Docker image for Amazon alexa voice assistant, based on Debian Buster."
 
 ARG L_AUTHORS_ALEXAFHEM="https://github.com/justme-1968/alexa-fhem/graphs/contributors"
 ARG L_URL_ALEXAFHEM="https://fhem.de/"
