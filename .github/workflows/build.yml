@@ -113,7 +113,7 @@ jobs:
             type=ref,event=pr
 
       - name: Build and push Docker image for all plattforms
-        uses: docker/build-push-action@v3.1.1
+        uses: docker/build-push-action@v3.2.0
         id: docker_build_runtime_cross
         with:
           context: .
