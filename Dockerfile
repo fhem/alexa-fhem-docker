@@ -45,11 +45,10 @@ RUN  DEBIAN_FRONTEND=noninteractive apt-get update \
 ARG ALEXAFHEM_VERSION="0.5.64"
 
 # Add alexa-fhem app layer
-COPY src/package.json package.json
-RUN if [ "${IMAGE_LAYER_NODEJS_EXT}" != "0" ]; then \
-          npm install -g --unsafe-perm --production \
-          && ln -s /usr/local/lib/node_modules/alexa-fhem-docker/node_modules/alexa-fhem/bin/alexa /usr/local/bin/alexa-fhem \
-    ; fi \
+COPY src/package.json /alexa-fhem/package.json
+WORKDIR "/alexa-fhem"
+RUN npm install \
+           && ln -s /alexa-fhem/node_modules/alexa-fhem/bin/alexa /usr/local/bin/alexa-fhem \
     && rm -rf /tmp/* /var/tmp/* ~/.[^.] ~/.??* ~/* 
 
 # Add alexa-fhem app layer
@@ -113,6 +112,6 @@ EXPOSE 3000
 
 HEALTHCHECK --interval=20s --timeout=10s --start-period=10s --retries=5 CMD /health-check.sh
 
-WORKDIR "/alexa-fhem"
+
 ENTRYPOINT [ "/entry.sh" ]
 CMD [ "start" ]
