@@ -31,8 +31,7 @@ jobs:
       - name: Get alexa-fhem Version from package.json
         id: split_alexafhemV
         run: |
-          echo "::set-output name=result::$(awk -F'"' '/"alexa-fhem": ".+"/{ print $4; exit; }' package.json | sed 's/\^//')"
-
+          echo "result=$(awk -F'"' '/"alexa-fhem": ".+"/{ print $4; exit; }' src/package.json | sed 's/\^//')" >> $GITHUB_OUTPUT
 
       - name: Build image and run integrationtests (amd64)
         id: build_and_run_integrationtest
@@ -61,15 +60,15 @@ jobs:
       - name: Get alexa-fhem Version from package.json
         id: split_alexafhemV
         run: |
-          echo "::set-output name=result::$(awk -F'"' '/"alexa-fhem": ".+"/{ print $4; exit; }' package.json | sed 's/\^//')"
+          echo "result=$(awk -F'"' '/"alexa-fhem": ".+"/{ print $4; exit; }' src/package.json | sed 's/\^//')" >> $GITHUB_OUTPUT
 
       - name: Extract Image from Dockerfile
         if: ${{ github.event_name == 'release' }}
         id: extract_image
         run: |
-           echo "::set-output name=image_name::$(grep '^FROM' Dockerfile | cut -d ' ' -f2 | cut -d ':' -f1)"
-           echo "::set-output name=image_version::$(grep '^FROM' Dockerfile | cut -d ' ' -f2 | cut -d ':' -f2 | cut -d '.' -f1)"
-           echo "::set-output name=image_base::$(grep '^FROM' Dockerfile | cut -d ' ' -f2 | cut -d ':' -f2 | cut -d '-' -f2,3)"
+           echo "image_name=$(grep '^FROM' Dockerfile | cut -d ' ' -f2 | cut -d ':' -f1)" >> $GITHUB_OUTPUT
+           echo "image_version=$(grep '^FROM' Dockerfile | cut -d ' ' -f2 | cut -d ':' -f2 | cut -d '.' -f1)" >> $GITHUB_OUTPUT
+           echo "image_base=$(grep '^FROM' Dockerfile | cut -d ' ' -f2 | cut -d ':' -f2 | cut -d '-' -f2,3)" >> $GITHUB_OUTPUT
 
       - name: Update docs
         if: ${{ github.event_name == 'release' }}
@@ -105,7 +104,7 @@ jobs:
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           flavor: |
-             latest= ${{ fromJSON('["auto", "false"]')[github.event.release.prerelease == 1] }}
+            latest= ${{ fromJSON('["auto", "false"]')[github.event.release.prerelease == 1] }}
           tags: |
             type=semver,pattern={{version}}
             type=semver,pattern={{major}},enable=${{ github.event.release.prerelease == 0 }}
@@ -155,7 +154,7 @@ jobs:
         run: |
           git config --global user.email "action@github.com"
           git config --local user.name "GitHub Action"
-          git commit -m "README.md: Update Versions" -a && echo "::set-output name=status::true" || true
+          git commit -m "README.md: Update Versions" -a && echo "status=true" >> $GITHUB_OUTPUT || true
       
       - name: Push back to protected branch (main)
         uses: CasperWA/push-protected@v2

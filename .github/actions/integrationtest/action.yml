@@ -18,12 +18,12 @@ runs:
 
       - name: Extract Docker metadata
         id: meta-runtime
-        uses: docker/metadata-action@v4.0.1
+        uses: docker/metadata-action@v4
         with:
           images: runtime
 
       - name: Build for integration test amd64 
-        uses: docker/build-push-action@v3.1.1
+        uses: docker/build-push-action@v3
         id: docker_build_runtime
         with:
           context: .
