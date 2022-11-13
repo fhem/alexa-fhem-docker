@@ -62,7 +62,7 @@ ARG IMAGE_VCS_REF=""
 ARG IMAGE_VERSION=""
 
 # Re-usable variables during build
-ARG L_AUTHORS="Julian Pawlowski (Forum.fhem.de:@loredo, Twitter:@loredo)"
+ARG L_AUTHORS=""
 ARG L_URL="https://hub.docker.com/r/fhem/alexa-fhem-${TARGETPLATFORM}"
 ARG L_USAGE="https://github.com/fhem/alexa-fhem-docker/blob/${IMAGE_VCS_REF}/README.md"
 ARG L_VCS_URL="https://github.com/fhem/alexa-fhem-docker/"
