@@ -31,7 +31,7 @@ jobs:
       - name: Get alexa-fhem Version from package.json
         id: split_alexafhemV
         run: |
-          echo "result=$(awk -F'"' '/"alexa-fhem": ".+"/{ print $4; exit; }' package.json | sed 's/\^//')" >> $GITHUB_OUTPUT
+          echo "result=$(awk -F'"' '/"alexa-fhem": ".+"/{ print $4; exit; }' src/package.json | sed 's/\^//')" >> $GITHUB_OUTPUT
 
       - name: Build image and run integrationtests (amd64)
         id: build_and_run_integrationtest
@@ -60,7 +60,7 @@ jobs:
       - name: Get alexa-fhem Version from package.json
         id: split_alexafhemV
         run: |
-          echo "result=$(awk -F'"' '/"alexa-fhem": ".+"/{ print $4; exit; }' package.json | sed 's/\^//')" >> $GITHUB_OUTPUT
+          echo "result=$(awk -F'"' '/"alexa-fhem": ".+"/{ print $4; exit; }' src/package.json | sed 's/\^//')" >> $GITHUB_OUTPUT
 
       - name: Extract Image from Dockerfile
         if: ${{ github.event_name == 'release' }}
