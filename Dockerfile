@@ -13,9 +13,6 @@ COPY src/ssh_known_hosts.txt /ssh_known_hosts.txt
 COPY src/health-check.sh /health-check.sh
 
 
-#RUN  sed -i "s/buster main/buster main contrib non-free/g" /etc/apt/sources.list \
-#    && sed -i "s/buster-updates main/buster-updates main contrib non-free/g" /etc/apt/sources.list \
-#    && sed -i "s/buster\/updates main/buster\/updates main contrib non-free/g" /etc/apt/sources.list \
 RUN  DEBIAN_FRONTEND=noninteractive apt-get update \
      && DEBIAN_FRONTEND=noninteractive apt-get install -qqy --no-install-recommends \
         ca-certificates \
@@ -33,22 +30,19 @@ RUN  DEBIAN_FRONTEND=noninteractive apt-get update \
     \
     && DEBIAN_FRONTEND=noninteractive apt-get install -qqy --no-install-recommends \
         curl \
-        dnsutils \
-        inetutils-ping \
         jq \
         lsb-release \
         openssh-client \
-        wget \
     && apt-get autoremove -qqy && apt-get clean \
     && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* ~/.[^.] ~/.??* ~/*
 
 ARG ALEXAFHEM_VERSION="0.5.64"
 
 # Add alexa-fhem app layer
-COPY src/package.json /alexa-fhem/package.json
-WORKDIR "/alexa-fhem"
+COPY src/package.json /opt/app/package.json
+WORKDIR "/opt/app"
 RUN npm install \
-           && ln -s /alexa-fhem/node_modules/alexa-fhem/bin/alexa /usr/local/bin/alexa-fhem \
+    && ln -s /opt/app/node_modules/alexa-fhem/bin/alexa /usr/local/bin/alexa-fhem \
     && rm -rf /tmp/* /var/tmp/* ~/.[^.] ~/.??* ~/* 
 
 # Add alexa-fhem app layer
@@ -112,6 +106,6 @@ EXPOSE 3000
 
 HEALTHCHECK --interval=20s --timeout=10s --start-period=10s --retries=5 CMD /health-check.sh
 
-
+WORKDIR "/alexa-fhem"
 ENTRYPOINT [ "/entry.sh" ]
 CMD [ "start" ]
