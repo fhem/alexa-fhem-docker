@@ -1,4 +1,4 @@
-FROM node:16.19.0-bullseye-slim
+FROM node:16.19.1-bullseye-slim
 ENV NODE_ENV=production
 ARG TARGETPLATFORM
 
@@ -56,14 +56,14 @@ ARG IMAGE_VCS_REF=""
 ARG IMAGE_VERSION=""
 
 # Re-usable variables during build
-ARG L_AUTHORS=""
+ARG L_AUTHORS="https://github.com/fhem/alexa-fhem-docker/graphs/contributors"
 ARG L_URL="https://hub.docker.com/r/fhem/alexa-fhem-${TARGETPLATFORM}"
 ARG L_USAGE="https://github.com/fhem/alexa-fhem-docker/blob/${IMAGE_VCS_REF}/README.md"
 ARG L_VCS_URL="https://github.com/fhem/alexa-fhem-docker/"
 ARG L_VENDOR="FHEM"
 ARG L_LICENSES="MIT"
 ARG L_TITLE="alexa-fhem-${TARGETPLATFORM}"
-ARG L_DESCR="FHEM complementary Docker image for Amazon alexa voice assistant, based on Debian Buster."
+ARG L_DESCR="FHEM complementary Docker image for Amazon alexa voice assistant, based on Debian Bullseye."
 
 ARG L_AUTHORS_ALEXAFHEM="https://github.com/justme-1968/alexa-fhem/graphs/contributors"
 ARG L_URL_ALEXAFHEM="https://fhem.de/"
