@@ -100,7 +100,7 @@ jobs:
 
       - name: Extract Docker metadata
         id: meta
-        uses: docker/metadata-action@v4.2.0
+        uses: docker/metadata-action@v4.3.0
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           flavor: |
@@ -112,7 +112,7 @@ jobs:
             type=ref,event=pr
 
       - name: Build and push Docker image for all plattforms
-        uses: docker/build-push-action@v3.2.0
+        uses: docker/build-push-action@v4.0.0
         id: docker_build_runtime_cross
         with:
           context: .
