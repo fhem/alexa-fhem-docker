@@ -6,6 +6,8 @@ export ALEXAFHEM_GID="${ALEXAFHEM_GID:-6062}"
 
 [ ! -f /image_info.EMPTY ] && touch /image_info.EMPTY
 
+chmod --quiet go-w ${ALEXAFHEM_DIR}
+
 # creating user environment
 echo "Preparing user environment ..."
 [ ! -s /etc/passwd.orig ] && cp -f /etc/passwd /etc/passwd.orig
