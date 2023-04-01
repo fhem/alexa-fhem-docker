@@ -144,11 +144,9 @@ jobs:
       # https://github.com/sigstore/cosign
       - name: Sign the published Docker image
         if: ${{ github.event_name == 'release' }}
-        env:
-          COSIGN_EXPERIMENTAL: "true"
         # This step uses the identity token to provision an ephemeral certificate
         # against the sigstore community Fulcio instance.
-        run: echo "${{ steps.meta.outputs.tags }}" | xargs -I {} cosign sign {}@${{ steps.docker_build_runtime_cross.outputs.digest }}
+        run: echo "${{ steps.meta.outputs.tags }}" | xargs -I {} cosign sign --yes {}@${{ steps.docker_build_runtime_cross.outputs.digest }}
       
       - name: git commit README.md 
         id: commit
