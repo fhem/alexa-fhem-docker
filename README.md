@@ -1,6 +1,6 @@
 # Docker image for alexa-fhem
 A [FHEM](https://fhem.de/) complementary Docker image for Amazon alexa voice assistant, based on 
-- [Node 16 - Debian bullseye-slim](https://hub.docker.com/_/node/tags?page=1&name=16-bullseye-slim)
+- [Node 20 - Debian bullseye-slim](https://hub.docker.com/_/node/tags?page=1&name=20-bullseye-slim)
 - [alexa_fhem](https://www.npmjs.com/package/alexa-fhem?activeTab=versions)
 
 
@@ -11,14 +11,14 @@ Pre-build images are available on [Docker Hub](https://hub.docker.com/r/fhem/ale
 
 ### From Github container registry
 Updated version, only with Version tags
-- NodeJS 16
+- NodeJS 20
 - Alexa-Fhem 0.5.64
 
-        docker pull ghcr.io/fhem/fhem/alexa-fhem:v4.0.2
+        docker pull ghcr.io/fhem/fhem/alexa-fhem:v4.0.3
 
 #### To start your container right away:
 
-docker run -d --name alexa-fhem -p 3000:3000 ghcr.io/fhem/fhem/alexa-fhem:v4.0.2
+docker run -d --name alexa-fhem -p 3000:3000 ghcr.io/fhem/fhem/alexa-fhem:v4.0.3
 
 
 ### Permanent storage
@@ -46,7 +46,7 @@ You can use one of those variants by adding them to the docker image name like t
 
 	docker pull ghcr.io/fhem/fhem/alexa-fhem:latest
   docker pull ghcr.io/fhem/fhem/alexa-fhem:2	
-	docker pull ghcr.io/fhem/fhem/alexa-fhem:v4.0.2
+	docker pull ghcr.io/fhem/fhem/alexa-fhem:v4.0.3
 
 If you do not specify any variant, `latest` will always be the default.
 
@@ -125,7 +125,7 @@ services:
 
  # Minimum example w/o any custom environment variables of alexa-fhem container
  alexa-fhem:
-    image: ghcr.io/fhem/fhem/alexa-fhem:v4.0.2
+    image: ghcr.io/fhem/fhem/alexa-fhem:v4.0.3
     restart: always
     networks:
      - fhem_net
