@@ -135,7 +135,7 @@ jobs:
             L_VCS_URL=${{ github.server_url }}/${{ github.repository }}/
             L_AUTHORS=${{ github.server_url }}/${{ github.repository }}/graphs/contributors
       - name: Install cosign
-        uses: sigstore/cosign-installer@v3.0.3
+        uses: sigstore/cosign-installer@v3.0.4
 
       # Sign the resulting Docker image digest except on PRs.
       # This will only write to the public Rekor transparency log when the Docker
