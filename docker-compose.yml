@@ -23,7 +23,7 @@ services:
 
   # Minimum example w/o any custom environment variables
   alexa-fhem:
-    image: ghcr.io/fhem/fhem/alexa-fhem:4
+    image: ghcr.io/fhem/fhem/alexa-fhem:5
     restart: always
     networks:
       - net
@@ -35,7 +35,7 @@ services:
     depends_on:
       fhem:
         condition: service_healthy
-    image: ghcr.io/fhem/fhem/alexa-fhem:4
+    image: ghcr.io/fhem/fhem/alexa-fhem:5
     restart: always
     networks:
       - net
@@ -44,7 +44,7 @@ services:
 
   # Example w/ custom environment variables
   alexa-fhem:
-    image: ghcr.io/fhem/fhem/alexa-fhem:4	
+    image: ghcr.io/fhem/fhem/alexa-fhem:5	
     restart: always
     networks:
       - net
