@@ -14,11 +14,11 @@ Updated version, only with Version tags
 - NodeJS 20
 - Alexa-Fhem 0.5.64
 
-        docker pull ghcr.io/fhem/fhem/alexa-fhem:v5.0.0
+        docker pull ghcr.io/fhem/fhem/alexa-fhem:v5.0.1
 
 #### To start your container right away:
 
-docker run -d --name alexa-fhem -p 3000:3000 ghcr.io/fhem/fhem/alexa-fhem:v5.0.0
+docker run -d --name alexa-fhem -p 3000:3000 ghcr.io/fhem/fhem/alexa-fhem:v5.0.1
 
 
 ### Permanent storage
@@ -46,7 +46,7 @@ You can use one of those variants by adding them to the docker image name like t
 
 	docker pull ghcr.io/fhem/fhem/alexa-fhem:latest
   docker pull ghcr.io/fhem/fhem/alexa-fhem:2	
-	docker pull ghcr.io/fhem/fhem/alexa-fhem:v5.0.0
+	docker pull ghcr.io/fhem/fhem/alexa-fhem:v5.0.1
 
 If you do not specify any variant, `latest` will always be the default.
 
@@ -125,7 +125,7 @@ services:
 
  # Minimum example w/o any custom environment variables of alexa-fhem container
  alexa-fhem:
-    image: ghcr.io/fhem/fhem/alexa-fhem:v5.0.0
+    image: ghcr.io/fhem/fhem/alexa-fhem:v5.0.1
     restart: always
     networks:
      - fhem_net
