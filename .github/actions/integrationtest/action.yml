@@ -14,7 +14,7 @@ runs:
   using: "composite"
   steps: 
       - name: Setup Docker buildx
-        uses: docker/setup-buildx-action@v2
+        uses: docker/setup-buildx-action@v3
 
       - name: Extract Docker metadata
         id: meta-runtime
