@@ -79,7 +79,7 @@ jobs:
         uses: docker/setup-buildx-action@v2
 
       - name: Docker Setup QEMU
-        uses: docker/setup-qemu-action@v2.2.0
+        uses: docker/setup-qemu-action@v3.0.0
 
       # Login against a Docker registry if it is a release
       # https://github.com/docker/login-action
