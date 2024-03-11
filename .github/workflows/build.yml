@@ -72,7 +72,7 @@ jobs:
       - name: Update docs
         if: ${{ github.event_name == 'release' }}
         run: |
-            sed -e "s/{ALEXAFHEM_VERSION}/${{ steps.split_alexafhemV.outputs.result}}/g" -e "s/{NODE_VERSION}/${{ steps.extract_image.outputs.image_version}}/g" -e "s/{DEBIAN_RELEASE}/${{ steps.extract_image.outputs.image_base}}/g" -e s/{IMAGE_TAG}/${{ github.ref_name }}/g < README.tmpl > README.md
+            sed -e "s/{ALEXAFHEM_VERSION}/${{ steps.split_alexafhemV.outputs.result}}/g" -e "s/{NODE_VERSION}/${{ steps.extract_image.outputs.image_version}}/g" -e "s/{DEBIAN_RELEASE}/${{ steps.extract_image.outputs.image_base}}/g" -e s/{IMAGE_TAG}/${DOCKER_METADATA_OUTPUT_VERSION}/g < README.tmpl > README.md
 
       - name: Setup Docker buildx
         uses: docker/setup-buildx-action@v3
