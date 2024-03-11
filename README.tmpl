@@ -14,17 +14,17 @@ Updated version, only with Version tags
 - NodeJS {NODE_VERSION}
 - Alexa-Fhem {ALEXAFHEM_VERSION}
 
-        docker pull ghcr.io/fhem/fhem/alexa-fhem:{IMAGE_TAG}
+        docker pull ghcr.io/fhem/alexa-fhem:{IMAGE_TAG}
 
 #### To start your container right away:
 
-docker run -d --name alexa-fhem -p 3000:3000 ghcr.io/fhem/fhem/alexa-fhem:{IMAGE_TAG}
+docker run -d --name alexa-fhem -p 3000:3000 ghcr.io/fhem/alexa-fhem:{IMAGE_TAG}
 
 
 ### Permanent storage
 Usually you want to keep your FHEM setup after a container was destroyed (or re-build) so it is a good idea to provide an external directory on your Docker host to keep that data:
 
-    docker run -d --name alexa-fhem -p 3000:3000 -v /some/host/directory:/alexa-fhem ghcr.io/fhem/fhem/alexa-fhem:2 
+    docker run -d --name alexa-fhem -p 3000:3000 -v /some/host/directory:/alexa-fhem ghcr.io/fhem/alexa-fhem:{IMAGE_TAG}
 
 #### Verify if container is runnung
 After starting your container, you may check the web server availability:
@@ -44,9 +44,9 @@ This image provides different variants:
 
 You can use one of those variants by adding them to the docker image name like this:
 
-	docker pull ghcr.io/fhem/fhem/alexa-fhem:latest
-  docker pull ghcr.io/fhem/fhem/alexa-fhem:2	
-	docker pull ghcr.io/fhem/fhem/alexa-fhem:{IMAGE_TAG}
+	docker pull ghcr.io/fhem/alexa-fhem:latest
+  docker pull ghcr.io/fhem/alexa-fhem:2	
+	docker pull ghcr.io/fhem/alexa-fhem:{IMAGE_TAG}
 
 If you do not specify any variant, `latest` will always be the default.
 
@@ -114,7 +114,7 @@ networks:
 services:
   # Minimum example w/o any custom environment variables of fhem container
   fhem:
-    image: ghcr.io/fhem/fhem/fhem-docker:bullseye
+    image: ghcr.io/fhem/fhem-docker:3-bullseye
     restart: always
     networks:
       - fhem_net
@@ -125,7 +125,7 @@ services:
 
  # Minimum example w/o any custom environment variables of alexa-fhem container
  alexa-fhem:
-    image: ghcr.io/fhem/fhem/alexa-fhem:{IMAGE_TAG}
+    image: ghcr.io/fhem/alexa-fhem:{IMAGE_TAG}
     restart: always
     networks:
      - fhem_net
