@@ -14,17 +14,17 @@ Updated version, only with Version tags
 - NodeJS 20
 - Alexa-Fhem 0.5.64
 
-        docker pull ghcr.io/fhem/alexa-fhem:
+        docker pull ghcr.io/fhem/alexa-fhem:5.0.10
 
 #### To start your container right away:
 
-docker run -d --name alexa-fhem -p 3000:3000 ghcr.io/fhem/alexa-fhem:
+docker run -d --name alexa-fhem ghcr.io/fhem/alexa-fhem:5.0.10
 
 
 ### Permanent storage
 Usually you want to keep your FHEM setup after a container was destroyed (or re-build) so it is a good idea to provide an external directory on your Docker host to keep that data:
 
-    docker run -d --name alexa-fhem -p 3000:3000 -v /some/host/directory:/alexa-fhem ghcr.io/fhem/alexa-fhem:
+    docker run -d --name alexa-fhem -v /some/host/directory:/alexa-fhem ghcr.io/fhem/alexa-fhem:5.0.10
 
 #### Verify if container is runnung
 After starting your container, you may check the web server availability:
@@ -39,14 +39,14 @@ This image provides different variants:
 
 - `latest` (default, can introduce breaking changes)
 - `2.0.7` ( latest released Version. Can be a prerelease version)
-- `2` ( latest stable release in Major v2)
+- `5` ( latest stable release in Major v5)
 - `dev` (development tag, not updated anymore)
 
 You can use one of those variants by adding them to the docker image name like this:
 
 	docker pull ghcr.io/fhem/alexa-fhem:latest
-  docker pull ghcr.io/fhem/alexa-fhem:2	
-	docker pull ghcr.io/fhem/alexa-fhem:
+  docker pull ghcr.io/fhem/alexa-fhem:5	
+	docker pull ghcr.io/fhem/alexa-fhem:5.0.10
 
 If you do not specify any variant, `latest` will always be the default.
 
@@ -125,12 +125,10 @@ services:
 
  # Minimum example w/o any custom environment variables of alexa-fhem container
  alexa-fhem:
-    image: ghcr.io/fhem/alexa-fhem:
+    image: ghcr.io/fhem/alexa-fhem:5.0.10
     restart: always
     networks:
      - fhem_net
-    ports:
-      - "3000:3000"
     volumes:
       - "./alexa-fhem/:/alexa-fhem/"
     environment:
