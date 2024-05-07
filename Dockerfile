@@ -1,4 +1,4 @@
-FROM node:20.12.2-bullseye-slim
+FROM node:20.13.0-bullseye-slim
 ENV NODE_ENV=production
 ARG TARGETPLATFORM
 
