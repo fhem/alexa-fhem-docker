@@ -2,10 +2,10 @@ FROM node:22.11.0-bullseye-slim
 ENV NODE_ENV=production
 ARG TARGETPLATFORM
 
-ENV TERM xterm
-ENV LANG en_US.UTF-8
-ENV LANGUAGE en_US:en
-ENV LC_ALL en_US.UTF-8
+ENV TERM=xterm
+ENV LANG=en_US.UTF-8
+ENV LANGUAGE=en_US:en
+ENV LC_ALL=en_US.UTF-8
 
 # Install base environment
 COPY src/entry.sh /entry.sh
@@ -36,7 +36,7 @@ RUN  DEBIAN_FRONTEND=noninteractive apt-get update \
     && apt-get autoremove -qqy && apt-get clean \
     && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* ~/.[^.] ~/.??* ~/*
 
-ARG ALEXAFHEM_VERSION="0.5.64"
+ARG ALEXAFHEM_VERSION="0.5.65"
 
 # Add alexa-fhem app layer
 COPY src/package.json /opt/app/package.json
