@@ -1,4 +1,4 @@
-FROM node:22.11.0-bullseye-slim@sha256:01e6d7155cfe9567294142e456da98864df32fd51e7d64ea04c1287b3fdc4bc5
+FROM node:22.11.0-bookworm-slim
 ENV NODE_ENV=production
 ARG TARGETPLATFORM
 
@@ -31,10 +31,9 @@ RUN  DEBIAN_FRONTEND=noninteractive apt-get update \
     && DEBIAN_FRONTEND=noninteractive apt-get install -qqy --no-install-recommends \
         curl \
         jq \
-        lsb-release \
         openssh-client \
     && apt-get autoremove -qqy && apt-get clean \
-    && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* ~/.[^.] ~/.??* ~/*
+    && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* ~/.[!.] ~/.??* ~/*
 
 ARG ALEXAFHEM_VERSION="0.5.65"
 
@@ -43,7 +42,7 @@ COPY src/package.json /opt/app/package.json
 WORKDIR "/opt/app"
 RUN npm install \
     && ln -s /opt/app/node_modules/alexa-fhem/bin/alexa /usr/local/bin/alexa-fhem \
-    && rm -rf /tmp/* /var/tmp/* ~/.[^.] ~/.??* ~/* 
+    && rm -rf /tmp/* /var/tmp/* ~/.[!.] ~/.??* ~/* 
 
 # Add alexa-fhem app layer
 COPY src/config.json /alexa-fhem.src/alexa-fhem-docker.config.json
@@ -63,7 +62,7 @@ ARG L_VCS_URL="https://github.com/fhem/alexa-fhem-docker/"
 ARG L_VENDOR="FHEM"
 ARG L_LICENSES="MIT"
 ARG L_TITLE="alexa-fhem-${TARGETPLATFORM}"
-ARG L_DESCR="FHEM complementary Docker image for Amazon alexa voice assistant, based on Debian Bullseye."
+ARG L_DESCR="FHEM complementary Docker image for Amazon alexa voice assistant, based on Debian Bookworm."
 
 ARG L_AUTHORS_ALEXAFHEM="https://github.com/justme-1968/alexa-fhem/graphs/contributors"
 ARG L_URL_ALEXAFHEM="https://fhem.de/"
