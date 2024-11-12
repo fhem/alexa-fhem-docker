@@ -1,4 +1,4 @@
-FROM node:22.11.0-bullseye-slim@sha256:01e6d7155cfe9567294142e456da98864df32fd51e7d64ea04c1287b3fdc4bc5
+FROM node:22.11.0-bullseye-slim@sha256:dc4a9f3fcc974b388ddd3d1801890782bd12e8b0a476d37e4dd1c7b5d66c459d
 ENV NODE_ENV=production
 ARG TARGETPLATFORM
 
