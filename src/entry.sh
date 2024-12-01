@@ -58,7 +58,7 @@ fi
 touch ${ALEXAFHEM_DIR}/.ssh/known_hosts
 cat ${ALEXAFHEM_DIR}/.ssh/known_hosts /ssh_known_hosts.txt | grep -v ^# | sort -u -k2,3 > ${ALEXAFHEM_DIR}/.ssh/known_hosts.tmp
 mv -f ${ALEXAFHEM_DIR}/.ssh/known_hosts.tmp ${ALEXAFHEM_DIR}/.ssh/known_hosts
-chown -R alexa-fhem.alexa-fhem ${ALEXAFHEM_DIR}/.ssh/
+chown -R alexa-fhem:alexa-fhem ${ALEXAFHEM_DIR}/.ssh/
 
 if [[ ! -L /alexa-fhem/.alexa/config.json && -f /alexa-fhem/.alexa/config.json && ! -e /alexa-fhem/config.json ]]; then
   echo "  - Moving configuration from /alexa-fhem/.alexa/config.json to /alexa-fhem/config.json ..."
