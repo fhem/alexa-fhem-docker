@@ -1,4 +1,4 @@
-FROM node:22.11.0-bookworm-slim
+FROM node:22.12.0-bookworm-slim AS base
 ENV NODE_ENV=production
 ARG TARGETPLATFORM
 
@@ -6,11 +6,6 @@ ENV TERM=xterm
 ENV LANG=en_US.UTF-8
 ENV LANGUAGE=en_US:en
 ENV LC_ALL=en_US.UTF-8
-
-# Install base environment
-COPY src/entry.sh /entry.sh
-COPY src/ssh_known_hosts.txt /ssh_known_hosts.txt
-COPY src/health-check.sh /health-check.sh
 
 
 RUN  DEBIAN_FRONTEND=noninteractive apt-get update \
@@ -35,11 +30,20 @@ RUN  DEBIAN_FRONTEND=noninteractive apt-get update \
     && apt-get autoremove -qqy && apt-get clean \
     && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* ~/.[!.] ~/.??* ~/*
 
+FROM base AS alexa-fhem
+
+# Install base environment
+COPY src/entry.sh /entry.sh
+COPY src/ssh_known_hosts.txt /ssh_known_hosts.txt
+COPY src/health-check.sh /health-check.sh
+
 ARG ALEXAFHEM_VERSION="0.5.65"
 
 # Add alexa-fhem app layer
 COPY src/package.json /opt/app/package.json
 WORKDIR "/opt/app"
+
+
 RUN npm install \
     && ln -s /opt/app/node_modules/alexa-fhem/bin/alexa /usr/local/bin/alexa-fhem \
     && rm -rf /tmp/* /var/tmp/* ~/.[!.] ~/.??* ~/* 
@@ -108,3 +112,23 @@ HEALTHCHECK --interval=20s --timeout=10s --start-period=10s --retries=5 CMD /hea
 WORKDIR "/alexa-fhem"
 ENTRYPOINT [ "/entry.sh" ]
 CMD [ "start" ]
+
+
+
+FROM alexa-fhem AS alexa-fhem-bats
+
+ADD https://github.com/bats-core/bats-core.git#v1.11.1 /tmp/bats
+RUN <<EOF
+    /tmp/bats/install.sh /opt/bats 
+    ln -s /opt/bats/bin/bats /usr/local/bin/bats 
+    rm -r /tmp/bats
+EOF
+
+ADD https://github.com/bats-core/bats-support.git#v0.3.0 /opt/bats/test_helper/bats-support
+ADD https://github.com/bats-core/bats-assert.git#v2.1.0 /opt/bats/test_helper/bats-assert
+ADD https://github.com/bats-core/bats-file.git /opt/bats/test_helper/bats-file
+ADD https://github.com/grayhemp/bats-mock.git /opt/bats/test_helper/bats-mock
+
+WORKDIR /code/
+
+ENTRYPOINT [ "/usr/local/bin/bats" ]
