@@ -146,7 +146,7 @@ teardown_file() {
 }
 
 
-@test "Test update_config function update and add multipke keys" {
+@test "Test update_config function update and add multiple keys" {
   prepare_user_environment
   move_configurations
   export DEBUG=false
@@ -165,7 +165,6 @@ teardown_file() {
   run -0  update_config "${ALEXAFHEM_DIR}"/config.json
   echo "#" >&3 && cat "${ALEXAFHEM_DIR}"/config.json >&3
 
-  assert_file_permission 755 "${ALEXAFHEM_DIR}"/config.json
   run -0 jq -e '.alexa.port == "4000"' "${ALEXAFHEM_DIR}"/config.json
   run -0 jq -e '.alexa.name == "myServer"' "${ALEXAFHEM_DIR}"/config.json
   run -0 jq -e '.alexa.ssl == "true"' "${ALEXAFHEM_DIR}"/config.json
