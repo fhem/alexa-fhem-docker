@@ -84,9 +84,9 @@ jobs:
         if: ${{ github.event_name == 'release' }}
         id: extract_image
         run: |
-           echo "image_name=$(grep '^FROM' Dockerfile | cut -d ' ' -f2 | cut -d ':' -f1)" >> $GITHUB_OUTPUT
-           echo "image_version=$(grep '^FROM' Dockerfile | cut -d ' ' -f2 | cut -d ':' -f2 | cut -d '.' -f1)" >> $GITHUB_OUTPUT
-           echo "image_base=$(grep '^FROM' Dockerfile | cut -d ' ' -f2 | cut -d ':' -f2 | cut -d '-' -f2,3)" >> $GITHUB_OUTPUT
+           echo "image_name=$(grep -m 1 '^FROM' Dockerfile | cut -d ' ' -f2 | cut -d ':' -f1)" >> $GITHUB_OUTPUT
+           echo "image_version=$(grep -m1 '^FROM' Dockerfile | cut -d ' ' -f2 | cut -d ':' -f2 | cut -d '.' -f1)" >> $GITHUB_OUTPUT
+           echo "image_base=$(grep -m1 '^FROM' Dockerfile | cut -d ' ' -f2 | cut -d ':' -f2 | cut -d '-' -f2,3)" >> $GITHUB_OUTPUT
 
 
       - name: Setup Docker buildx
