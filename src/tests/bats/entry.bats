@@ -66,7 +66,8 @@ teardown_file() {
     assert_file_exists "${ALEXAFHEM_DIR}"/.ssh/config
     assert_file_contains "${ALEXAFHEM_DIR}"/.ssh/config "IdentityFile"
     assert_file_contains "${ALEXAFHEM_DIR}"/.ssh/config "Ciphers"
-    assert_file_contains "${ALEXAFHEM_DIR}"/.ssh/config "ssh-ed25519,ssh-rsa"
+    assert_file_contains "${ALEXAFHEM_DIR}"/.ssh/config "hmac-sha2-256"
+    assert_file_contains "${ALEXAFHEM_DIR}"/.ssh/config "hmac-sha2-512"
 }
 
 

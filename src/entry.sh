@@ -46,7 +46,7 @@ generate_ssh_keys() {
   if [ ! -s ${ALEXAFHEM_DIR}/.ssh/id_rsa ]; then
     echo -e "  - Generating SSH RSA client certificate for user 'alexa-fhem' ..."
     rm -f ${ALEXAFHEM_DIR}/.ssh/id_rsa*
-    ssh-keygen -t rsa -b 4096 -f ${ALEXAFHEM_DIR}/.ssh/id_rsa -q -N "" -o -a 100
+    ssh-keygen -t rsa-sha2-512 -b 4096 -f ${ALEXAFHEM_DIR}/.ssh/id_rsa -q -N "" -o -a 100
     sed -i "s/root@.*/alexa-fhem@alexa-fhem-docker/" ${ALEXAFHEM_DIR}/.ssh/id_rsa.pub
   fi
   chmod 600 ${ALEXAFHEM_DIR}/.ssh/id_rsa
@@ -55,14 +55,15 @@ generate_ssh_keys() {
 
 harden_ssh_client() {
   if [ ! -f ${ALEXAFHEM_DIR}/.ssh/config ]; then
-    echo "IdentityFile ~/.ssh/id_ed25519
-IdentityFile ~/.ssh/id_rsa
-
-Ciphers chacha20-poly1305@openssh.com,aes256-gcm@openssh.com,aes128-gcm@openssh.com,aes256-ctr,aes192-ctr,aes128-ctr
-HostKeyAlgorithms ssh-ed25519,ssh-rsa
-KexAlgorithms curve25519-sha256,curve25519-sha256@libssh.org,diffie-hellman-group16-sha512,diffie-hellman-group18-sha512,diffie-hellman-group-exchange-sha256
-MACs hmac-sha2-256-etm@openssh.com,hmac-sha2-512-etm@openssh.com,umac-128-etm@openssh.com,hmac-sha2-256,hmac-sha2-512,umac-128-etm@openssh.com
-" > "${ALEXAFHEM_DIR}"/.ssh/config
+    printf "%s\n" \
+           "IdentityFile ~/.ssh/id_ed25519" \
+           "IdentityFile ~/.ssh/id_rsa" \
+           "PubkeyAcceptedKeyTypes +ssh-rsa" \
+           "HostKeyAlgorithms +ssh-rsa" \
+           "Ciphers chacha20-poly1305@openssh.com,aes256-gcm@openssh.com,aes256-ctr,aes192-ctr,aes128-gcm@openssh.com,aes128-ctr" \
+           "MACs hmac-sha2-256,hmac-sha2-512,hmac-sha2-512-etm@openssh.com,hmac-sha2-256-etm@openssh.com,umac-128-etm@openssh.com" \
+           "KexAlgorithms sntrup761x25519-sha512@openssh.com,curve25519-sha256,curve25519-sha256@libssh.org,gss-curve25519-sha256-,diffie-hellman-group16-sha512,gss-group16-sha512-,diffie-hellman-group18-sha512,diffie-hellman-group-exchange-sha256" \
+           "Ciphers aes128-ctr,aes192-ctr,aes256-ctr,aes128-gcm@openssh.com,aes256-gcm@openssh.com" > "${ALEXAFHEM_DIR}"/.ssh/config
   fi
 }
 
