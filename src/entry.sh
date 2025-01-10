@@ -59,8 +59,6 @@ harden_ssh_client() {
            "IdentityFile ~/.ssh/id_ed25519" \
            "IdentityFile ~/.ssh/id_rsa" \
            "PubkeyAcceptedKeyTypes +ssh-rsa" \
-           "HostKeyAlgorithms +ssh-rsa" \
-           "Ciphers chacha20-poly1305@openssh.com,aes256-gcm@openssh.com,aes256-ctr,aes192-ctr,aes128-gcm@openssh.com,aes128-ctr" \
            "MACs hmac-sha2-256,hmac-sha2-512,hmac-sha2-512-etm@openssh.com,hmac-sha2-256-etm@openssh.com,umac-128-etm@openssh.com" \
            "KexAlgorithms sntrup761x25519-sha512@openssh.com,curve25519-sha256,curve25519-sha256@libssh.org,gss-curve25519-sha256-,diffie-hellman-group16-sha512,gss-group16-sha512-,diffie-hellman-group18-sha512,diffie-hellman-group-exchange-sha256" \
            "Ciphers aes128-ctr,aes192-ctr,aes256-ctr,aes128-gcm@openssh.com,aes256-gcm@openssh.com" > "${ALEXAFHEM_DIR}"/.ssh/config
@@ -100,6 +98,13 @@ move_configurations() {
 }
 
 
+test_registerstatus()
+{
+  echo "Testing alexa-fhem registration status ..."
+  STATUS=$(ssh fhem-va.fhem.de -p 58824 status)
+  echo "$STATUS"
+
+}
 
 # Funktion, um Debug-Ausgaben zu machen
 debug_log() {
@@ -171,7 +176,8 @@ if [ "$#" -eq 1 ] && [ "$1" = "start" ]; then
   harden_ssh_client
   pin_ssh_keys
   move_configurations
-
+  test_registerstatus
+  
   echo -e '\n\n'
   if [ -s /pre-start.sh ]; then
     echo "Running pre-start script ..."
