@@ -101,8 +101,8 @@ move_configurations() {
 test_registerstatus()
 {
   echo "Testing alexa-fhem registration status ..."
-  STATUS=$(su - alexa-fhem ; ssh fhem-va.fhem.de -p 58824 status || true)
-  echo "$STATUS"
+  STATUS=$(su - alexa-fhem -c "ssh fhem-va.fhem.de -p 58824 status || true")
+  echo "  - $STATUS"
 
 }
 

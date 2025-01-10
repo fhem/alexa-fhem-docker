@@ -2,16 +2,9 @@ FROM node:22.12.0-bookworm-slim AS base
 ENV NODE_ENV=production
 ARG TARGETPLATFORM
 
-ENV TERM=xterm
-ENV LANG=en_US.UTF-8
-ENV LANGUAGE=en_US:en
-ENV LC_ALL=en_US.UTF-8
-
 
 RUN  DEBIAN_FRONTEND=noninteractive apt-get update \
      && DEBIAN_FRONTEND=noninteractive apt-get install -qqy --no-install-recommends \
-        ca-certificates \
-        gnupg \
         locales \
     \
     && DEBIAN_FRONTEND=noninteractive dpkg-reconfigure locales \
@@ -29,6 +22,11 @@ RUN  DEBIAN_FRONTEND=noninteractive apt-get update \
         openssh-client \
     && apt-get autoremove -qqy && apt-get clean \
     && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* ~/.[!.] ~/.??* ~/*
+
+ENV TERM=xterm
+ENV LANG=en_US.UTF-8
+ENV LANGUAGE=en_US:en
+ENV LC_ALL=en_US.UTF-8
 
 FROM base AS alexa-fhem
 
