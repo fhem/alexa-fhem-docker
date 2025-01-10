@@ -60,14 +60,34 @@ teardown_file() {
   assert_file_contains  "${ALEXAFHEM_DIR}"/.ssh/known_hosts "fhem-va.fhem.de"
 }
 
-@test "Test harden_ssh_client function" {
+@test "Test harden_ssh_client function new config file" {
     run -0 harden_ssh_client
 
     assert_file_exists "${ALEXAFHEM_DIR}"/.ssh/config
-    assert_file_contains "${ALEXAFHEM_DIR}"/.ssh/config "IdentityFile"
-    assert_file_contains "${ALEXAFHEM_DIR}"/.ssh/config "Ciphers"
-    assert_file_contains "${ALEXAFHEM_DIR}"/.ssh/config "hmac-sha2-256"
-    assert_file_contains "${ALEXAFHEM_DIR}"/.ssh/config "hmac-sha2-512"
+    assert_file_contains "${ALEXAFHEM_DIR}"/.ssh/config "IdentityFile ~/.ssh/id_rsa"
+    assert_file_contains "${ALEXAFHEM_DIR}"/.ssh/config "Ciphers aes128-ctr"
+    assert_file_contains "${ALEXAFHEM_DIR}"/.ssh/config "PubkeyAcceptedKeyTypes +ssh-rsa"
+    assert_file_contains "${ALEXAFHEM_DIR}"/.ssh/config "MACs.*hmac-sha2-256" egrep
+    assert_file_contains "${ALEXAFHEM_DIR}"/.ssh/config "MACs.*hmac-sha2-512" egrep
+}
+
+
+@test "Test harden_ssh_client function patch existing config file" {
+    printf "%s\n" \
+      "IdentityFile ~/.ssh/id_ed25519" \
+      "IdentityFile ~/.ssh/id_rsa" \
+      "MACs hmac-sha2-256,hmac-sha2-512,hmac-sha2-512-etm@openssh.com,hmac-sha2-256-etm@openssh.com,umac-128-etm@openssh.com" \
+      "KexAlgorithms sntrup761x25519-sha512@openssh.com,curve25519-sha256,curve25519-sha256@libssh.org,gss-curve25519-sha256-,diffie-hellman-group16-sha512,gss-group16-sha512-,diffie-hellman-group18-sha512,diffie-hellman-group-exchange-sha256" \
+      "Ciphers aes128-ctr,aes192-ctr,aes256-ctr,aes128-gcm@openssh.com,aes256-gcm@openssh.com" > "${ALEXAFHEM_DIR}"/.ssh/config
+
+    assert_file_exists "${ALEXAFHEM_DIR}"/.ssh/config
+    run -0 harden_ssh_client
+
+    assert_file_contains "${ALEXAFHEM_DIR}"/.ssh/config "IdentityFile ~/.ssh/id_rsa"
+    assert_file_contains "${ALEXAFHEM_DIR}"/.ssh/config "Ciphers aes128-ctr"
+    assert_file_contains "${ALEXAFHEM_DIR}"/.ssh/config "PubkeyAcceptedKeyTypes +ssh-rsa"
+    assert_file_contains "${ALEXAFHEM_DIR}"/.ssh/config "MACs.*hmac-sha2-256" egrep
+    assert_file_contains "${ALEXAFHEM_DIR}"/.ssh/config "MACs.*hmac-sha2-512" egrep
 }
 
 
