@@ -67,7 +67,7 @@ harden_ssh_client() {
   else
     echo "  - Existing ssh config file found. Checking if it needs patching..."
     if ! grep -q "IdentityFile ~/.ssh/id_rsa" "${ALEXAFHEM_DIR}/.ssh/config" || \
-       ! grep -q "PubkeyAcceptedKeyTypes +ssh-rsa" "${ALEXAFHEM_DIR}/.ssh/config" || \
+       ! grep -q "PubkeyAcceptedKeyTypes \+ssh-rsa" "${ALEXAFHEM_DIR}/.ssh/config" || \
        ! grep -q "MACs hmac-sha2-256,hmac-sha2-512,hmac-sha2-512-etm@openssh.com,hmac-sha2-256-etm@openssh.com,umac-128-etm@openssh.com" "${ALEXAFHEM_DIR}/.ssh/config" || \
        ! grep -q "KexAlgorithms sntrup761x25519-sha512@openssh.com,curve25519-sha256,curve25519-sha256@libssh.org,gss-curve25519-sha256-,diffie-hellman-group16-sha512,gss-group16-sha512-,diffie-hellman-group18-sha512,diffie-hellman-group-exchange-sha256" "${ALEXAFHEM_DIR}/.ssh/config" || \
        ! grep -q "Ciphers aes128-ctr,aes192-ctr,aes256-ctr,aes128-gcm@openssh.com,aes256-gcm@openssh.com" "${ALEXAFHEM_DIR}/.ssh/config"; then
