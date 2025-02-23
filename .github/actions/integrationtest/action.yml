@@ -32,6 +32,7 @@ runs:
           load: true
           tags: ${{ steps.meta-runtime.outputs.tags }}
           labels: ${{ steps.meta-runtime.outputs.labels }}
+          target: alexa-fhem
           cache-from: | 
             type=gha,scope=verify_runtime_${{ inputs.PLATTFORM }}
           cache-to: type=gha,mode=max,scope=verify_runtime_${{ inputs.PLATTFORM }}
