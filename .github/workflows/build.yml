@@ -53,7 +53,7 @@ jobs:
             type=gha,scope=verify_runtime_linux/amd64
           tags: bats-withalexafhem
 
-      - uses: Wandalen/wretry.action@v3.7.3
+      - uses: Wandalen/wretry.action@v3.8.0
         name: Run bats unit and integration tests in bidge network mode
         with:
           attempt_limit: 3
