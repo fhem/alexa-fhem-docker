@@ -40,7 +40,7 @@ jobs:
            ALEXAFHEM_VERSION: ${{ steps.split_alexafhemV.outputs.result }}
 
       - name: Build for bats with fhem base layer
-        uses: docker/build-push-action@v6.9.0
+        uses: docker/build-push-action@v6.14.0
         id: docker_build_bats
         with:
           context: .
