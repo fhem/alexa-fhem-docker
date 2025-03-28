@@ -1,6 +1,6 @@
 # Docker image for alexa-fhem
 A [FHEM](https://fhem.de/) complementary Docker image for Amazon alexa voice assistant, based on 
-- [Node 22 - Debian bullseye-slim@sha256](https://hub.docker.com/_/node/tags?page=1&name=22-bullseye-slim@sha256)
+- [Node 22 - Debian bookworm-slim@sha256](https://hub.docker.com/_/node/tags?page=1&name=22-bookworm-slim@sha256)
 - [alexa_fhem](https://www.npmjs.com/package/alexa-fhem?activeTab=versions)
 
 
@@ -14,17 +14,17 @@ Updated version, only with Version tags
 - NodeJS 22
 - Alexa-Fhem 0.5.65
 
-        docker pull ghcr.io/fhem/alexa-fhem:5.1.0-beta5
+        docker pull ghcr.io/fhem/alexa-fhem:5.1.0
 
 #### To start your container right away:
 
-docker run -d --name alexa-fhem ghcr.io/fhem/alexa-fhem:5.1.0-beta5
+docker run -d --name alexa-fhem ghcr.io/fhem/alexa-fhem:5.1.0
 
 
 ### Permanent storage
 Usually you want to keep your FHEM setup after a container was destroyed (or re-build) so it is a good idea to provide an external directory on your Docker host to keep that data:
 
-    docker run -d --name alexa-fhem -v /some/host/directory:/alexa-fhem ghcr.io/fhem/alexa-fhem:5.1.0-beta5
+    docker run -d --name alexa-fhem -v /some/host/directory:/alexa-fhem ghcr.io/fhem/alexa-fhem:5.1.0
 
 #### Verify if container is runnung
 After starting your container, you may check the web server availability:
@@ -46,7 +46,7 @@ You can use one of those variants by adding them to the docker image name like t
 
 	docker pull ghcr.io/fhem/alexa-fhem:latest
   docker pull ghcr.io/fhem/alexa-fhem:5	
-	docker pull ghcr.io/fhem/alexa-fhem:5.1.0-beta5
+	docker pull ghcr.io/fhem/alexa-fhem:5.1.0
 
 If you do not specify any variant, `latest` will always be the default.
 
@@ -114,7 +114,7 @@ networks:
 services:
   # Minimum example w/o any custom environment variables of fhem container
   fhem:
-    image: ghcr.io/fhem/fhem-docker:3-bullseye
+    image: ghcr.io/fhem/fhem-docker:4-bullseye
     restart: always
     networks:
       - fhem_net
@@ -123,9 +123,9 @@ services:
     volumes:
       - "./fhem/:/opt/fhem/"
 
- # Minimum example w/o any custom environment variables of alexa-fhem container
+ # Minimum example with some custom environment variables of alexa-fhem container
  alexa-fhem:
-    image: ghcr.io/fhem/alexa-fhem:5.1.0-beta5
+    image: ghcr.io/fhem/alexa-fhem:5.1.0
     restart: always
     networks:
      - fhem_net
@@ -138,6 +138,11 @@ services:
 ```
 
 If you use another name for your fhem container `fhem`, or want to use another tcp port for fhemweb connections, then you have to change the alexa-fhem config file in the volume for your alea-fhem container `./alexa-fhem/alexa-fhem.json`.
+
+## Configuration of alexa-fhem container
+
+The config file is placed in the volume /alexa-fhem.
+If not already present, it will be created here.
 
 In the connections part, servername and port must match withhin fhem configuration:
 ```
@@ -153,15 +158,40 @@ In the connections part, servername and port must match withhin fhem configurati
   ]
 ```
 
+Starting with Docker image version 5.1.x, you can control every setting via an environment variable provided by the Docker host. This means there is no need to edit any configuration files manually. All environment variables starting with the common prefix "CONFIG_" are evaluated and added to the configuration file.
 
-Within FHEM, you have to specify a alexa device and add attribute to identify the host. In this example, the container name is `alexa-fhem`, so this is also the hostname.
+To enable SSL for communication with FHEMweb, add an environment variable CONFIG_connections_0_ssl=true. If your container running FHEM is named differently, use the environment variable CONFIG_connections_0_server='fhem.docker.local'. To use another TCP port for communication with FHEM, set the environment variable CONFIG_connections_0_port='8088'.
+
+The settings for Alexa can also be changed. Here are some examples:
+
+`CONFIG_alexa_port=4000`
+`CONFIG_alexa_name=myAlexaSkill`
+`CONFIG_alexa_ssl=true`
+Additionally, the SSH proxy settings can be changed if needed:
+
+`CONFIG_sshproxy_ssh='/usr/bin/ssh'`
+## Configuration of FHEM configuration
+
+Within FHEM, you have to specify a alexa device and add attribute to identify the host. 
+In this example, the container name is `alexa-fhem`, so this is also the hostname.
 
 ```
 define alexa alexa
 attr alexa alexaFHEM-host alexa-fhem
 ```
 
-SSH and other attributes are not needed for running in a docker environment
+SSH and other attributes are not needed for running in a docker environment.
+alexa-fhem is running correctly if you have reading like this:
+
+`alexaFHEM.ProxyConnection = running; SSH connected`
+`alexaFHEM.bearerToken = <some secret value>`
+`alexaFHEM.skillRegKey = crypt:<some long value>`
+
+You will also see a internal `alexa-fhem version` 
+
+
+
+
 
 ___
 [Production Build and Test](https://github.com/fhem/fhem/alexa-fhem-docker/workflows/Build%20and%20Test/badge.svg?branch=master)
