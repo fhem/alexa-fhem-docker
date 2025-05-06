@@ -98,7 +98,7 @@ jobs:
       # Login against a Docker registry if it is a release
       # https://github.com/docker/login-action
       - name: Log into registry ${{ env.REGISTRY }}
-        if: github.event_name == 'release'
+        if: ${{ github.event_name == 'release' || contains(github.event.pull_request.labels.*.name, 'publishImage') }}
         uses: docker/login-action@v3.4.0
         with:
           registry: ${{ env.REGISTRY }}
