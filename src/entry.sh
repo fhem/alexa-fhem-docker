@@ -6,7 +6,7 @@ set -u            # Make use of unbound variables an error
 set -o pipefail   # Distribute an error exit status through the whole pipe
 
 #--- Constants -------------------------------------------------------------------------------------------------------
-declare -r  DEBUG=true
+declare -r  DEBUG=false
 
 #--- Environment variables, configurable from outside ----------------------------------------------------------------
 
@@ -168,10 +168,16 @@ update_config() {
     value=$(echo "$var" | awk -F= '{print substr($0, index($0,$2))}')
 
     debug_log "processing variable CONFIG_${path} with value=${value}"
-
-    # Erzeuge den `jq`-Suchstring und setze den Wert in Anführungszeichen
+    
     jq_path=$(convert_path_to_jq "$path")
-    jq_search_string="$jq_path |= \"$value\""
+    # Überprüfe, ob der Wert eine Zahl oder ein boolescher Wert ist
+    if [[ "$value" =~ ^[0-9]+$ ]]; then
+      jq_search_string="$jq_path |= $value"
+    elif [[ "$value" == "true" || "$value" == "false" ]]; then
+      jq_search_string="$jq_path |= $value"
+    else
+      jq_search_string="$jq_path |= \"$value\""
+    fi
 
     debug_log "jq search string: $jq_search_string"
 

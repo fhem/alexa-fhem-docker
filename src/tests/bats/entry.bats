@@ -12,6 +12,7 @@ setup() {
   set +a
   
   mkdir -p "${ALEXAFHEM_DIR}"
+  cp  /tmp/alexa-fhem-docker.config.json /alexa-fhem.src/alexa-fhem-docker.config.json
 }
 
 setup_file() {  
@@ -22,6 +23,8 @@ setup_file() {
   export ALEXAFHEM_GID=6062
   export ALEXAFHEM_UID=6062
   export DEBUG=false
+
+  cp /alexa-fhem.src/alexa-fhem-docker.config.json /tmp/alexa-fhem-docker.config.json
 
   mkdir -p /alexa-fhem.src
 
@@ -35,6 +38,7 @@ teardown() {
 
 teardown_file() {
   rm -rf ${ALEXAFHEM_DIR}
+  rm  /tmp/alexa-fhem-docker.config.json
 
   sleep 0
 }
@@ -142,6 +146,7 @@ teardown_file() {
   assert_file_contains "${ALEXAFHEM_DIR}"/config.json "MY LINKED CONFIG FILE"
 }
 
+
 @test "Test update_connections function overwrite key" {
   move_configurations
 
@@ -151,6 +156,7 @@ teardown_file() {
 
   run -0 jq -e '.connections[0].server == "my.server.io"' "${ALEXAFHEM_DIR}"/config.json
   run -0 jq -e '.connections[0].server != "fhem"' "${ALEXAFHEM_DIR}"/config.json
+  run -0 jq -e '.connections[0].server | type == "string"' "${ALEXAFHEM_DIR}"/config.json
 
   echo "#" >&3 && cat "${ALEXAFHEM_DIR}"/config.json >&3
 }
@@ -162,7 +168,8 @@ teardown_file() {
   export CONFIG_connections_0_ssl="true"
   run -0  update_config "${ALEXAFHEM_DIR}"/config.json
 
-  run -0 jq -e '.connections[0].ssl == "true"' "${ALEXAFHEM_DIR}"/config.json
+  run -0 jq -e '.connections[0].ssl == true' "${ALEXAFHEM_DIR}"/config.json
+  run -0 jq -e '.connections[0].ssl | type == "boolean"' "${ALEXAFHEM_DIR}"/config.json
   echo "#" >&3 && cat "${ALEXAFHEM_DIR}"/config.json >&3
 }
 
@@ -172,7 +179,7 @@ teardown_file() {
   move_configurations
   export DEBUG=false
   
-  export CONFIG_alexa_port=4000 
+  export CONFIG_alexa_port="4000"
   export CONFIG_alexa_name="myServer"
   export CONFIG_alexa_ssl=true 
   export CONFIG_connections_0_port='8088'
@@ -186,13 +193,16 @@ teardown_file() {
   run -0  update_config "${ALEXAFHEM_DIR}"/config.json
   echo "#" >&3 && cat "${ALEXAFHEM_DIR}"/config.json >&3
 
-  run -0 jq -e '.alexa.port == "4000"' "${ALEXAFHEM_DIR}"/config.json
+
+  run -0 jq -e '.alexa.port == 4000' "${ALEXAFHEM_DIR}"/config.json
+  run -0 jq -e '.alexa.port | type == "number"' "${ALEXAFHEM_DIR}"/config.json
   run -0 jq -e '.alexa.name == "myServer"' "${ALEXAFHEM_DIR}"/config.json
-  run -0 jq -e '.alexa.ssl == "true"' "${ALEXAFHEM_DIR}"/config.json
-  run -0 jq -e '.connections[0].port == "8088"' "${ALEXAFHEM_DIR}"/config.json
+  run -0 jq -e '.alexa.ssl == true' "${ALEXAFHEM_DIR}"/config.json
+  run -0 jq -e '.connections[0].port == 8088' "${ALEXAFHEM_DIR}"/config.json
   run -0 jq -e '.connections[0].filter == "alexaName=..*"' "${ALEXAFHEM_DIR}"/config.json
   run -0 jq -e '.connections[0].server == "fhem.docker.local"' "${ALEXAFHEM_DIR}"/config.json
-  run -0 jq -e '.connections[0].ssl == "true"' "${ALEXAFHEM_DIR}"/config.json
+  run -0 jq -e '.connections[0].ssl == true' "${ALEXAFHEM_DIR}"/config.json
+  run -0 jq -e '.connections[0].ssl | type == "boolean"' "${ALEXAFHEM_DIR}"/config.json
   run -0 jq -e '.sshproxy.description == "my special ssl client"' "${ALEXAFHEM_DIR}"/config.json
   run -0 jq -e '.sshproxy.ssh == "/usr/bin/ssh2"' "${ALEXAFHEM_DIR}"/config.json
 }
