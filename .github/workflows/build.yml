@@ -138,7 +138,7 @@ jobs:
           load: false  
           file: ./Dockerfile
           platforms: linux/amd64,linux/arm/v7,linux/arm64
-          push: ${{ github.event_name == 'release' }} || contains(github.event.pull_request.labels.*.name, 'publishImage') }}
+          push: ${{ github.event_name == 'release' || contains(github.event.pull_request.labels.*.name, 'publishImage') }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: | 
