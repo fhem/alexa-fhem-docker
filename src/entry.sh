@@ -197,7 +197,9 @@ if [ "$#" -eq 1 ] && [ "$1" = "start" ]; then
   harden_ssh_client
   pin_ssh_keys
   move_configurations
+  update_config "${ALEXAFHEM_DIR}"/config.json  ## Update config file with env settings
   test_registerstatus
+  
   
   echo -e '\n\n'
   if [ -s /pre-start.sh ]; then
