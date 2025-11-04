@@ -1,4 +1,4 @@
-FROM node:22.21.0-bookworm-slim@sha256:f9f7f95dcf1f007b007c4dcd44ea8f7773f931b71dc79d57c216e731c87a090b AS base
+FROM node:22.21.1-bookworm-slim@sha256:8833056542b4e17c27154beeabbc27c3e14ddfe3fb9183f43b3adf7eb0462923 AS base
 ENV NODE_ENV=production
 ARG TARGETPLATFORM
 
