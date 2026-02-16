@@ -40,7 +40,7 @@ jobs:
            ALEXAFHEM_VERSION: ${{ steps.split_alexafhemV.outputs.result }}
 
       - name: Build for bats with fhem base layer
-        uses: docker/build-push-action@v6.18.0
+        uses: docker/build-push-action@v6.19.2
         id: docker_build_bats
         with:
           context: .
@@ -131,7 +131,7 @@ jobs:
             sed -e "s/{ALEXAFHEM_VERSION}/${{ steps.split_alexafhemV.outputs.result}}/g" -e "s/{NODE_VERSION}/${{ steps.extract_image.outputs.image_version}}/g" -e "s/{DEBIAN_RELEASE}/${{ steps.extract_image.outputs.image_base}}/g" -e s/{IMAGE_TAG}/${DOCKER_METADATA_OUTPUT_VERSION}/g < README.tmpl > README.md
     
       - name: Build and push Docker image for all plattforms
-        uses: docker/build-push-action@v6.18.0
+        uses: docker/build-push-action@v6.19.2
         id: docker_build_runtime_cross
         with:
           context: .
