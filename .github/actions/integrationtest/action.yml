@@ -18,7 +18,7 @@ runs:
 
       - name: Extract Docker metadata
         id: meta-runtime
-        uses: docker/metadata-action@v5
+        uses: docker/metadata-action@v6
         with:
           images: runtime
 
