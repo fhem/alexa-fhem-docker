@@ -6,7 +6,11 @@ A [FHEM](https://fhem.de/) complementary Docker image for Amazon alexa voice ass
 
 
 ## Installation
-Pre-build images are available on [Docker Hub](https://hub.docker.com/r/fhem/alexa-fhem) and on [Github Container Registry](https://github.com/orgs/fhem/packages/container/package/fhem/alexa-fhem).
+Pre-build images are available on [Github Container Registry](https://github.com/orgs/fhem/packages/container/package/fhem/alexa-fhem).
+
+### Caution
+No up to date images are provided on [Docker Hub](https://hub.docker.com/r/fhem/alexa-fhem) currently. 
+Do not use the outdated images.
 
 
 ### From Github container registry
@@ -114,7 +118,7 @@ networks:
 services:
   # Minimum example w/o any custom environment variables of fhem container
   fhem:
-    image: ghcr.io/fhem/fhem-docker:4-bullseye
+    image: ghcr.io/fhem/fhem-docker:5-bookworm
     restart: always
     networks:
       - fhem_net
