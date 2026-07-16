@@ -58,7 +58,7 @@ services:
 
    # Example w/ alexa custom skill support via port 3000
   alexa-fhem:
-    image: ghcr.io/fhem/alexa-fhem:5@sha256:52549939f96a8694025afcfa8a7c6def87e446cdc0831990822b9f658a44b75b
+    image: ghcr.io/fhem/alexa-fhem:5@sha256:380a05d39508e654895b4dc9bff2354e27fab2c55e8ccb80881175d91a9707b7
     restart: always
     networks:
       - net
