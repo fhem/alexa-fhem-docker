@@ -174,6 +174,37 @@ The settings for Alexa can also be changed. Here are some examples:
 Additionally, the SSH proxy settings can be changed if needed:
 
 `CONFIG_sshproxy_ssh='/usr/bin/ssh'`
+### Optional logfile
+
+By default alexa-fhem only writes to stdout/stderr (`docker logs`). To additionally write the output to a file, e.g. on a volume shared with the FHEM container, set the environment variable `ALEXAFHEM_LOGFILE`. If it is unset or empty (default), no logfile is written.
+
+```
+  alexa-fhem:
+    image: ghcr.io/fhem/alexa-fhem:{IMAGE_TAG}
+    volumes:
+      - "./alexa-fhem/:/alexa-fhem/"
+      - "alexa_fhem_log:/var/log/alexa-fhem"
+    environment:
+      ALEXAFHEM_LOGFILE: /var/log/alexa-fhem/alexa-fhem.log
+
+  fhem:
+    volumes:
+      - "./fhem/:/opt/fhem/"
+      # mount into a subdirectory, so the existing FHEM log directory is not hidden
+      - "alexa_fhem_log:/opt/fhem/log/alexa-fhem"
+
+volumes:
+  alexa_fhem_log:
+```
+
+If a logfile is configured, stderr is merged into stdout. The path must be a regular file (symlinks and directories are rejected). The file is appended to and not rotated by the container. Use `logrotate` with `copytruncate` on the host if needed.
+
+To show the file in the FHEM frontend without FHEM writing to it, define a FileLog with `fakelog` in FHEM (the path is the one seen from the FHEM container):
+
+```
+define alexaFhemLog FileLog /opt/fhem/log/alexa-fhem/alexa-fhem.log fakelog
+```
+
 ## Configuration of FHEM configuration
 
 Within FHEM, you have to specify a alexa device and add attribute to identify the host. 

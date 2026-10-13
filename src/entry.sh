@@ -13,6 +13,7 @@ declare -r  DEBUG=false
 declare -r  ALEXAFHEM_DIR="${ALEXAFHEM_DIR:-/alexa-fhem}" 
 declare -ri ALEXAFHEM_UID="${ALEXAFHEM_UID:-6062}"
 declare -ri ALEXAFHEM_GID="${ALEXAFHEM_GID:-6062}"
+ALEXAFHEM_LOGFILE="${ALEXAFHEM_LOGFILE:-}"   # Optional: also write output to this file. Disabled if empty.
 
 
 
@@ -197,6 +198,26 @@ update_config() {
   fi
 }
 
+prepare_logfile() {
+  [ -z "${ALEXAFHEM_LOGFILE}" ] && return 0
+  local logdir
+  logdir="$(dirname "${ALEXAFHEM_LOGFILE}")"
+  if [ -L "${ALEXAFHEM_LOGFILE}" ]; then
+    echo "WARNING: Logfile ${ALEXAFHEM_LOGFILE} is a symlink, logging to console only." >&2
+    return 1
+  fi
+  if [ -e "${ALEXAFHEM_LOGFILE}" ] && [ ! -f "${ALEXAFHEM_LOGFILE}" ]; then
+    echo "WARNING: Logfile ${ALEXAFHEM_LOGFILE} is not a regular file, logging to console only." >&2
+    return 1
+  fi
+  if ! mkdir -p "${logdir}" || ! touch "${ALEXAFHEM_LOGFILE}"; then
+    echo "WARNING: Cannot write logfile ${ALEXAFHEM_LOGFILE}, logging to console only." >&2
+    return 1
+  fi
+  chown -h "${ALEXAFHEM_UID}:${ALEXAFHEM_GID}" "${ALEXAFHEM_LOGFILE}"
+  chmod 644 "${ALEXAFHEM_LOGFILE}"
+}
+
 if [ "$#" -eq 1 ] && [ "$1" = "start" ]; then
   prepare_user_environment
   generate_ssh_keys
@@ -213,5 +234,11 @@ if [ "$#" -eq 1 ] && [ "$1" = "start" ]; then
     /pre-start.sh
   fi
   echo 'Starting alexa-fhem ...'
-  su - alexa-fhem -c "cd "${ALEXAFHEM_DIR}"; /usr/local/bin/alexa-fhem --dockerDetached"
+  if [ -n "${ALEXAFHEM_LOGFILE}" ] && prepare_logfile; then
+    echo "Writing output additionally to ${ALEXAFHEM_LOGFILE}"
+    su - alexa-fhem -c "cd "${ALEXAFHEM_DIR}"; /usr/local/bin/alexa-fhem --dockerDetached" 2>&1 \
+      | setpriv --reuid="${ALEXAFHEM_UID}" --regid="${ALEXAFHEM_GID}" --clear-groups tee -a "${ALEXAFHEM_LOGFILE}"
+  else
+    su - alexa-fhem -c "cd "${ALEXAFHEM_DIR}"; /usr/local/bin/alexa-fhem --dockerDetached"
+  fi
 fi

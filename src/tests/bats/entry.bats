@@ -206,3 +206,46 @@ teardown_file() {
   run -0 jq -e '.sshproxy.description == "my special ssl client"' "${ALEXAFHEM_DIR}"/config.json
   run -0 jq -e '.sshproxy.ssh == "/usr/bin/ssh2"' "${ALEXAFHEM_DIR}"/config.json
 }
+
+
+@test "Test prepare_logfile function is a noop by default" {
+  export ALEXAFHEM_LOGFILE=""
+  run -0 prepare_logfile
+  assert_file_not_exists "/tmp/alexa-fhem-log/alexa-fhem.log"
+}
+
+@test "Test prepare_logfile function creates logfile and directory" {
+  prepare_user_environment
+  export ALEXAFHEM_LOGFILE="/tmp/alexa-fhem-log/alexa-fhem.log"
+  run -0 prepare_logfile
+  assert_file_exists "${ALEXAFHEM_LOGFILE}"
+  run -0 stat -c '%u:%g' "${ALEXAFHEM_LOGFILE}"
+  assert_output "6062:6062"
+  rm -rf /tmp/alexa-fhem-log
+}
+
+@test "Test prepare_logfile function fails on unwritable location" {
+  export ALEXAFHEM_LOGFILE="/proc/alexa-fhem/alexa-fhem.log"
+  run -1 prepare_logfile
+}
+
+@test "Test prepare_logfile function rejects a directory" {
+  mkdir -p /tmp/alexa-fhem-log
+  export ALEXAFHEM_LOGFILE="/tmp/alexa-fhem-log"
+  run -1 prepare_logfile
+  run -0 stat -c '%a' /tmp/alexa-fhem-log
+  refute_output "644"
+  rm -rf /tmp/alexa-fhem-log
+}
+
+@test "Test prepare_logfile function rejects a symlink" {
+  mkdir -p /tmp/alexa-fhem-log
+  touch /tmp/alexa-fhem-log/target
+  chmod 600 /tmp/alexa-fhem-log/target
+  ln -s /tmp/alexa-fhem-log/target /tmp/alexa-fhem-log/alexa-fhem.log
+  export ALEXAFHEM_LOGFILE="/tmp/alexa-fhem-log/alexa-fhem.log"
+  run -1 prepare_logfile
+  run -0 stat -c '%a' /tmp/alexa-fhem-log/target
+  assert_output "600"
+  rm -rf /tmp/alexa-fhem-log
+}

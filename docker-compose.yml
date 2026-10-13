@@ -68,3 +68,28 @@ services:
       ALEXAFHEM_UID: 6062
       ALEXAFHEM_GID: 6062
       TZ: Europe/Berlin
+
+
+  # Example w/ additional logfile on a volume shared with the fhem container (disabled by default).
+  # Needs the top-level "volumes:" section below and the fhem mount shown in the comment.
+  alexa-fhem:
+    image: ghcr.io/fhem/alexa-fhem:5
+    restart: always
+    networks:
+      - net
+    volumes:
+      - "./alexa-fhem/:/alexa-fhem/"
+      - "alexa_fhem_log:/var/log/alexa-fhem"
+    environment:
+      ALEXAFHEM_LOGFILE: /var/log/alexa-fhem/alexa-fhem.log
+
+  # fhem container side of the shared volume (mount into a subdirectory, so the FHEM log directory is not hidden):
+  #   fhem:
+  #     volumes:
+  #       - "./fhem/:/opt/fhem/"
+  #       - "alexa_fhem_log:/opt/fhem/log/alexa-fhem"
+  # FHEM: define alexaFhemLog FileLog /opt/fhem/log/alexa-fhem/alexa-fhem.log fakelog
+
+# Required by the logfile example above
+volumes:
+  alexa_fhem_log:
