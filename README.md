@@ -176,11 +176,13 @@ Additionally, the SSH proxy settings can be changed if needed:
 `CONFIG_sshproxy_ssh='/usr/bin/ssh'`
 ### Optional logfile
 
+Available since image version 5.2.0.
+
 By default alexa-fhem only writes to stdout/stderr (`docker logs`). To additionally write the output to a file, e.g. on a volume shared with the FHEM container, set the environment variable `ALEXAFHEM_LOGFILE`. If it is unset or empty (default), no logfile is written.
 
 ```
   alexa-fhem:
-    image: ghcr.io/fhem/alexa-fhem:5.1.15
+    image: ghcr.io/fhem/alexa-fhem:5.2.0
     volumes:
       - "./alexa-fhem/:/alexa-fhem/"
       - "alexa_fhem_log:/var/log/alexa-fhem"
