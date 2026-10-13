@@ -83,11 +83,11 @@ services:
     environment:
       ALEXAFHEM_LOGFILE: /var/log/alexa-fhem/alexa-fhem.log
 
-  # fhem container side of the shared volume (mount into a subdirectory, so the FHEM log directory is not hidden):
+  # fhem container side of the shared volume (mount read-only into a subdirectory, so the FHEM log directory is not hidden):
   #   fhem:
   #     volumes:
   #       - "./fhem/:/opt/fhem/"
-  #       - "alexa_fhem_log:/opt/fhem/log/alexa-fhem"
+  #       - "alexa_fhem_log:/opt/fhem/log/alexa-fhem:ro"
   # FHEM: define alexaFhemLog FileLog /opt/fhem/log/alexa-fhem/alexa-fhem.log fakelog
 
 # Required by the logfile example above

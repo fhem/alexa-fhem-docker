@@ -190,14 +190,14 @@ By default alexa-fhem only writes to stdout/stderr (`docker logs`). To additiona
   fhem:
     volumes:
       - "./fhem/:/opt/fhem/"
-      # mount into a subdirectory, so the existing FHEM log directory is not hidden
-      - "alexa_fhem_log:/opt/fhem/log/alexa-fhem"
+      # mount read-only into a subdirectory, so the existing FHEM log directory is not hidden
+      - "alexa_fhem_log:/opt/fhem/log/alexa-fhem:ro"
 
 volumes:
   alexa_fhem_log:
 ```
 
-If a logfile is configured, stderr is merged into stdout. The path must be a regular file (symlinks and directories are rejected). The file is appended to and not rotated by the container. Use `logrotate` with `copytruncate` on the host if needed.
+If a logfile is configured, stderr is merged into stdout. The path must be absolute and a regular file (symlinks and directories are rejected). The log directory must not contain symlinks and must only be writable by root or the alexa-fhem user, otherwise file logging is disabled with a warning. Therefore mount the volume read-only (`:ro`) in other containers like FHEM; the fhem container would otherwise take over ownership of it on startup. The file is appended to and not rotated by the container. Use `logrotate` with `copytruncate` on the host if needed.
 
 To show the file in the FHEM frontend without FHEM writing to it, define a FileLog with `fakelog` in FHEM (the path is the one seen from the FHEM container):
 

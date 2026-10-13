@@ -200,8 +200,27 @@ update_config() {
 
 prepare_logfile() {
   [ -z "${ALEXAFHEM_LOGFILE}" ] && return 0
-  local logdir
+  local logdir owner
+  case "${ALEXAFHEM_LOGFILE}" in
+    /*) ;;
+    *) echo "WARNING: Logfile ${ALEXAFHEM_LOGFILE} must be an absolute path, logging to console only." >&2
+       return 1 ;;
+  esac
   logdir="$(dirname "${ALEXAFHEM_LOGFILE}")"
+  if ! mkdir -p "${logdir}"; then
+    echo "WARNING: Cannot create log directory ${logdir}, logging to console only." >&2
+    return 1
+  fi
+  if [ "$(realpath -e "${logdir}")" != "${logdir}" ]; then
+    echo "WARNING: Log directory ${logdir} contains symlinks, logging to console only." >&2
+    return 1
+  fi
+  # Entries in a directory writable by others (e.g. the fhem container) could be swapped between check and use
+  owner="$(stat -c '%u' "${logdir}")"
+  if { [ "${owner}" != 0 ] && [ "${owner}" != "${ALEXAFHEM_UID}" ]; } || [ -n "$(find "${logdir}" -maxdepth 0 -perm /022)" ]; then
+    echo "WARNING: Log directory ${logdir} is writable by other users (mount it read-only in other containers), logging to console only." >&2
+    return 1
+  fi
   if [ -L "${ALEXAFHEM_LOGFILE}" ]; then
     echo "WARNING: Logfile ${ALEXAFHEM_LOGFILE} is a symlink, logging to console only." >&2
     return 1
@@ -210,7 +229,7 @@ prepare_logfile() {
     echo "WARNING: Logfile ${ALEXAFHEM_LOGFILE} is not a regular file, logging to console only." >&2
     return 1
   fi
-  if ! mkdir -p "${logdir}" || ! touch "${ALEXAFHEM_LOGFILE}"; then
+  if ! touch "${ALEXAFHEM_LOGFILE}"; then
     echo "WARNING: Cannot write logfile ${ALEXAFHEM_LOGFILE}, logging to console only." >&2
     return 1
   fi

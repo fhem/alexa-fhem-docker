@@ -230,10 +230,10 @@ teardown_file() {
 }
 
 @test "Test prepare_logfile function rejects a directory" {
-  mkdir -p /tmp/alexa-fhem-log
-  export ALEXAFHEM_LOGFILE="/tmp/alexa-fhem-log"
+  mkdir -p /tmp/alexa-fhem-log/sub
+  export ALEXAFHEM_LOGFILE="/tmp/alexa-fhem-log/sub"
   run -1 prepare_logfile
-  run -0 stat -c '%a' /tmp/alexa-fhem-log
+  run -0 stat -c '%a' /tmp/alexa-fhem-log/sub
   refute_output "644"
   rm -rf /tmp/alexa-fhem-log
 }
@@ -247,5 +247,38 @@ teardown_file() {
   run -1 prepare_logfile
   run -0 stat -c '%a' /tmp/alexa-fhem-log/target
   assert_output "600"
+  rm -rf /tmp/alexa-fhem-log
+}
+
+@test "Test prepare_logfile function rejects a relative path" {
+  export ALEXAFHEM_LOGFILE="alexa-fhem.log"
+  run -1 prepare_logfile
+}
+
+@test "Test prepare_logfile function rejects a log directory owned by another user" {
+  mkdir -p /tmp/alexa-fhem-log
+  chown 6061:6061 /tmp/alexa-fhem-log
+  chmod 0750 /tmp/alexa-fhem-log
+  export ALEXAFHEM_LOGFILE="/tmp/alexa-fhem-log/alexa-fhem.log"
+  run -1 prepare_logfile
+  assert_file_not_exists "${ALEXAFHEM_LOGFILE}"
+  rm -rf /tmp/alexa-fhem-log
+}
+
+@test "Test prepare_logfile function rejects a group writable log directory" {
+  mkdir -p /tmp/alexa-fhem-log
+  chmod 0775 /tmp/alexa-fhem-log
+  export ALEXAFHEM_LOGFILE="/tmp/alexa-fhem-log/alexa-fhem.log"
+  run -1 prepare_logfile
+  assert_file_not_exists "${ALEXAFHEM_LOGFILE}"
+  rm -rf /tmp/alexa-fhem-log
+}
+
+@test "Test prepare_logfile function rejects a symlinked log directory" {
+  mkdir -p /tmp/alexa-fhem-log/real
+  ln -s /tmp/alexa-fhem-log/real /tmp/alexa-fhem-log/link
+  export ALEXAFHEM_LOGFILE="/tmp/alexa-fhem-log/link/alexa-fhem.log"
+  run -1 prepare_logfile
+  assert_file_not_exists "/tmp/alexa-fhem-log/real/alexa-fhem.log"
   rm -rf /tmp/alexa-fhem-log
 }
