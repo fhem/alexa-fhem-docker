@@ -14,6 +14,7 @@ declare -r  ALEXAFHEM_DIR="${ALEXAFHEM_DIR:-/alexa-fhem}"
 declare -ri ALEXAFHEM_UID="${ALEXAFHEM_UID:-6062}"
 declare -ri ALEXAFHEM_GID="${ALEXAFHEM_GID:-6062}"
 ALEXAFHEM_LOGFILE="${ALEXAFHEM_LOGFILE:-}"   # Optional: also write output to this file. Disabled if empty.
+ALEXAFHEM_LOGFILE_GID="${ALEXAFHEM_LOGFILE_GID:-}"   # Optional: group allowed to read the logfile (mode 640). World-readable (644) if empty.
 
 
 
@@ -225,6 +226,10 @@ prepare_logfile() {
     echo "WARNING: Logfile ${ALEXAFHEM_LOGFILE} is a symlink, logging to console only." >&2
     return 1
   fi
+  if [ -n "${ALEXAFHEM_LOGFILE_GID}" ] && [[ ! "${ALEXAFHEM_LOGFILE_GID}" =~ ^[0-9]+$ ]]; then
+    echo "WARNING: ALEXAFHEM_LOGFILE_GID ${ALEXAFHEM_LOGFILE_GID} must be a numeric group id, logging to console only." >&2
+    return 1
+  fi
   if [ -e "${ALEXAFHEM_LOGFILE}" ] && [ ! -f "${ALEXAFHEM_LOGFILE}" ]; then
     echo "WARNING: Logfile ${ALEXAFHEM_LOGFILE} is not a regular file, logging to console only." >&2
     return 1
@@ -233,8 +238,13 @@ prepare_logfile() {
     echo "WARNING: Cannot write logfile ${ALEXAFHEM_LOGFILE}, logging to console only." >&2
     return 1
   fi
-  chown -h "${ALEXAFHEM_UID}:${ALEXAFHEM_GID}" "${ALEXAFHEM_LOGFILE}"
-  chmod 644 "${ALEXAFHEM_LOGFILE}"
+  if [ -n "${ALEXAFHEM_LOGFILE_GID}" ]; then
+    chown -h "${ALEXAFHEM_UID}:${ALEXAFHEM_LOGFILE_GID}" "${ALEXAFHEM_LOGFILE}"
+    chmod 640 "${ALEXAFHEM_LOGFILE}"
+  else
+    chown -h "${ALEXAFHEM_UID}:${ALEXAFHEM_GID}" "${ALEXAFHEM_LOGFILE}"
+    chmod 644 "${ALEXAFHEM_LOGFILE}"
+  fi
 }
 
 if [ "$#" -eq 1 ] && [ "$1" = "start" ]; then

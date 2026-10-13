@@ -219,8 +219,8 @@ teardown_file() {
   export ALEXAFHEM_LOGFILE="/tmp/alexa-fhem-log/alexa-fhem.log"
   run -0 prepare_logfile
   assert_file_exists "${ALEXAFHEM_LOGFILE}"
-  run -0 stat -c '%u:%g' "${ALEXAFHEM_LOGFILE}"
-  assert_output "6062:6062"
+  run -0 stat -c '%u:%g %a' "${ALEXAFHEM_LOGFILE}"
+  assert_output "6062:6062 644"
   rm -rf /tmp/alexa-fhem-log
 }
 
@@ -280,5 +280,22 @@ teardown_file() {
   export ALEXAFHEM_LOGFILE="/tmp/alexa-fhem-log/link/alexa-fhem.log"
   run -1 prepare_logfile
   assert_file_not_exists "/tmp/alexa-fhem-log/real/alexa-fhem.log"
+  rm -rf /tmp/alexa-fhem-log
+}
+
+@test "Test prepare_logfile function restricts logfile to ALEXAFHEM_LOGFILE_GID" {
+  export ALEXAFHEM_LOGFILE="/tmp/alexa-fhem-log/alexa-fhem.log"
+  export ALEXAFHEM_LOGFILE_GID=6061
+  run -0 prepare_logfile
+  run -0 stat -c '%u:%g %a' "${ALEXAFHEM_LOGFILE}"
+  assert_output "6062:6061 640"
+  rm -rf /tmp/alexa-fhem-log
+}
+
+@test "Test prepare_logfile function rejects a non numeric ALEXAFHEM_LOGFILE_GID" {
+  export ALEXAFHEM_LOGFILE="/tmp/alexa-fhem-log/alexa-fhem.log"
+  export ALEXAFHEM_LOGFILE_GID="fhem"
+  run -1 prepare_logfile
+  assert_file_not_exists "${ALEXAFHEM_LOGFILE}"
   rm -rf /tmp/alexa-fhem-log
 }
