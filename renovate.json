@@ -9,6 +9,11 @@
       "matchDatasources": ["npm"],
       "matchPackageNames": ["alexa-fhem"],
       "rangeStrategy": "pin"
+    },
+    {
+      "matchPackageNames": ["node"],
+      "matchUpdateTypes": ["pin", "digest"],
+      "automerge": true
     }
   ]
 }
