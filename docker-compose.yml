@@ -73,7 +73,7 @@ services:
   # Example w/ additional logfile on a volume shared with the fhem container (disabled by default).
   # Needs the top-level "volumes:" section below and the fhem mount shown in the comment.
   alexa-fhem:
-    image: ghcr.io/fhem/alexa-fhem:5
+    image: ghcr.io/fhem/alexa-fhem:5@sha256:07a63b30dfca6b58ee549273e03ae37be1f2210343a84d35d9d9f319c9d1343c
     restart: always
     networks:
       - net
