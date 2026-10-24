@@ -23,7 +23,7 @@ services:
 
   # Minimum example w/o any custom environment variables
   alexa-fhem:
-    image: ghcr.io/fhem/alexa-fhem:5
+    image: ghcr.io/fhem/alexa-fhem:5.2.1
     restart: always
     networks:
       - net
@@ -35,7 +35,7 @@ services:
     depends_on:
       fhem:
         condition: service_healthy
-    image: ghcr.io/fhem/alexa-fhem:5
+    image: ghcr.io/fhem/alexa-fhem:5.2.1
     restart: always
     networks:
       - net
@@ -44,7 +44,7 @@ services:
 
   # Example w/ custom environment variables
   alexa-fhem:
-    image: ghcr.io/fhem/alexa-fhem:5
+    image: ghcr.io/fhem/alexa-fhem:5.2.1
     restart: always
     networks:
       - net
@@ -58,7 +58,7 @@ services:
 
    # Example w/ alexa custom skill support via port 3000
   alexa-fhem:
-    image: ghcr.io/fhem/alexa-fhem:5@sha256:9dacd3e154b1fb3423356f34f03743bf861c88a0447b1c875d6e37cf5357d1bc
+    image: ghcr.io/fhem/alexa-fhem:5.2.1
     restart: always
     networks:
       - net
@@ -73,7 +73,7 @@ services:
   # Example w/ additional logfile on a volume shared with the fhem container (disabled by default).
   # Needs the top-level "volumes:" section below and the fhem mount shown in the comment.
   alexa-fhem:
-    image: ghcr.io/fhem/alexa-fhem:5
+    image: ghcr.io/fhem/alexa-fhem:5.2.1
     restart: always
     networks:
       - net

@@ -11,6 +11,18 @@
       "rangeStrategy": "pin"
     },
     {
+      "matchManagers": ["docker-compose"],
+      "matchPackageNames": ["ghcr.io/fhem/alexa-fhem"],
+      "pinDigests": false,
+      "automerge": true
+    },
+    {
+      "matchManagers": ["docker-compose"],
+      "matchPackageNames": ["ghcr.io/fhem/alexa-fhem"],
+      "matchUpdateTypes": ["major"],
+      "automerge": false
+    },
+    {
       "matchPackageNames": ["node"],
       "matchUpdateTypes": ["pin", "digest"],
       "automerge": true
