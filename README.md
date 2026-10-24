@@ -1,6 +1,6 @@
 # Docker image for alexa-fhem
 A [FHEM](https://fhem.de/) complementary Docker image for Amazon alexa voice assistant, based on 
-- [Node 22 - Debian bookworm-slim@sha256](https://hub.docker.com/_/node/tags?page=1&name=22-bookworm-slim@sha256)
+- [Node 22 - Debian bookworm-slim](https://hub.docker.com/_/node/tags?page=1&name=22-bookworm-slim)
 - [alexa_fhem](https://www.npmjs.com/package/alexa-fhem?activeTab=versions)
 
 
@@ -18,17 +18,17 @@ Updated version, only with Version tags
 - NodeJS 22
 - Alexa-Fhem 0.5.65
 
-        docker pull ghcr.io/fhem/alexa-fhem:5.1.15
+        docker pull ghcr.io/fhem/alexa-fhem:5.2.0
 
 #### To start your container right away:
 
-docker run -d --name alexa-fhem ghcr.io/fhem/alexa-fhem:5.1.15
+docker run -d --name alexa-fhem ghcr.io/fhem/alexa-fhem:5.2.0
 
 
 ### Permanent storage
 Usually you want to keep your FHEM setup after a container was destroyed (or re-build) so it is a good idea to provide an external directory on your Docker host to keep that data:
 
-    docker run -d --name alexa-fhem -v /some/host/directory:/alexa-fhem ghcr.io/fhem/alexa-fhem:5.1.15
+    docker run -d --name alexa-fhem -v /some/host/directory:/alexa-fhem ghcr.io/fhem/alexa-fhem:5.2.0
 
 #### Verify if container is runnung
 After starting your container, you may check the web server availability:
@@ -50,7 +50,7 @@ You can use one of those variants by adding them to the docker image name like t
 
 	docker pull ghcr.io/fhem/alexa-fhem:latest
   docker pull ghcr.io/fhem/alexa-fhem:5	
-	docker pull ghcr.io/fhem/alexa-fhem:5.1.15
+	docker pull ghcr.io/fhem/alexa-fhem:5.2.0
 
 If you do not specify any variant, `latest` will always be the default.
 
@@ -129,7 +129,7 @@ services:
 
  # Minimum example with some custom environment variables of alexa-fhem container
  alexa-fhem:
-    image: ghcr.io/fhem/alexa-fhem:5.1.15
+    image: ghcr.io/fhem/alexa-fhem:5.2.0
     restart: always
     networks:
      - fhem_net
@@ -176,13 +176,11 @@ Additionally, the SSH proxy settings can be changed if needed:
 `CONFIG_sshproxy_ssh='/usr/bin/ssh'`
 ### Optional logfile
 
-Not yet part of a release. For testing, the image `ghcr.io/fhem/alexa-fhem:pr-340` is available.
-
 By default alexa-fhem only writes to stdout/stderr (`docker logs`). To additionally write the output to a file, e.g. on a volume shared with the FHEM container, set the environment variable `ALEXAFHEM_LOGFILE`. If it is unset or empty (default), no logfile is written.
 
 ```
   alexa-fhem:
-    image: ghcr.io/fhem/alexa-fhem:pr-340
+    image: ghcr.io/fhem/alexa-fhem:5.2.0
     volumes:
       - "./alexa-fhem/:/alexa-fhem/"
       - "alexa_fhem_log:/var/log/alexa-fhem"
