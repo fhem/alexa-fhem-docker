@@ -1,0 +1,17 @@
+# Additional logfile on a volume shared with the fhem container (disabled by default).
+services:
+  alexa-fhem:
+    volumes:
+      - "alexa_fhem_log:/var/log/alexa-fhem"
+    environment:
+      ALEXAFHEM_LOGFILE: /var/log/alexa-fhem/alexa-fhem.log
+
+  # fhem container side of the shared volume. Add this to your fhem service. Mount it read-only into a subdirectory, so the
+  # FHEM log directory is not hidden:
+  #   fhem:
+  #     volumes:
+  #       - "alexa_fhem_log:/opt/fhem/log/alexa-fhem:ro"
+  # FHEM: define alexaFhemLog FileLog /opt/fhem/log/alexa-fhem/alexa-fhem.log fakelog
+
+volumes:
+  alexa_fhem_log:

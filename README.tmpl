@@ -97,6 +97,22 @@ The platform repositories will also allow you to choose more specific build tags
     	-e TZ=Europe/Berlin
 
 ## Use docker-compose.yaml
+The repository contains an example [docker-compose.yml](docker-compose.yml) with the minimum setup, plus optional override files which can be combined as needed:
+
+| File | Adds |
+|---|---|
+| `compose.env.yml` | custom `ALEXAFHEM_UID`, `ALEXAFHEM_GID` and `TZ` |
+| `compose.skill.yml` | port 3000 for the Alexa custom skill |
+| `compose.logfile.yml` | additional logfile on a shared volume |
+
+```
+docker compose -f docker-compose.yml -f compose.env.yml -f compose.skill.yml up -d
+```
+
+For the fhem container itself see the examples in the [fhem-docker](https://github.com/fhem/fhem-docker) repository. To start alexa-fhem only after fhem is up, add `depends_on` with `condition: service_healthy` for your fhem service to the alexa-fhem service.
+
+The complete example in one file:
+
 No problem at all. To connect alexa-fhem to your alexa container, you need a common network.
 Named it fhem_net. You should connect your fhem container to the same network to support communication via alexa-fhem and fhem itself.
 

@@ -1,6 +1,16 @@
-# This is an exmaple Docker Compose file to start your own Docker Stack
-
-version: '2.3'
+# Example Docker Compose setup for alexa-fhem.
+#
+# This base file is the minimum setup. Add the optional compose.*.yml files
+# next to it to enable additional features:
+#
+#   docker compose up -d                                                  # minimum
+#   docker compose -f docker-compose.yml -f compose.env.yml up -d         # + custom uid/gid/timezone
+#   docker compose -f docker-compose.yml -f compose.skill.yml up -d       # + custom skill on port 3000
+#   docker compose -f docker-compose.yml -f compose.logfile.yml up -d     # + additional logfile
+#
+# For a fhem container see https://github.com/fhem/fhem-docker (it has its own compose examples).
+# Files can be combined freely, or selected once via the environment:
+#   export COMPOSE_FILE=docker-compose.yml:compose.env.yml:compose.skill.yml
 
 networks:
   net:
@@ -15,12 +25,6 @@ networks:
         #   gateway: fd00:0:0:0:27::1
 
 services:
-
-  ####
-  # HINT: use only ONE of the example "alexa-fhem:" service
-  # definitions below !
-  #
-
   # Minimum example w/o any custom environment variables
   alexa-fhem:
     image: ghcr.io/fhem/alexa-fhem:5.2.1
@@ -29,67 +33,3 @@ services:
       - net
     volumes:
       - "./alexa-fhem/:/alexa-fhem/"
-
-  # example with dependency towards fhem container to reduce error messages during start
-  alexa-fhem:
-    depends_on:
-      fhem:
-        condition: service_healthy
-    image: ghcr.io/fhem/alexa-fhem:5.2.1
-    restart: always
-    networks:
-      - net
-    volumes:
-      - "./alexa-fhem/:/alexa-fhem/"
-
-  # Example w/ custom environment variables
-  alexa-fhem:
-    image: ghcr.io/fhem/alexa-fhem:5.2.1
-    restart: always
-    networks:
-      - net
-    volumes:
-      - "./alexa-fhem/:/alexa-fhem/"
-    environment:
-      ALEXAFHEM_UID: 6062
-      ALEXAFHEM_GID: 6062
-      TZ: Europe/Berlin
-
-
-   # Example w/ alexa custom skill support via port 3000
-  alexa-fhem:
-    image: ghcr.io/fhem/alexa-fhem:5.2.1
-    restart: always
-    networks:
-      - net
-    volumes:
-      - "./alexa-fhem/:/alexa-fhem/"
-    environment:
-      ALEXAFHEM_UID: 6062
-      ALEXAFHEM_GID: 6062
-      TZ: Europe/Berlin
-
-
-  # Example w/ additional logfile on a volume shared with the fhem container (disabled by default).
-  # Needs the top-level "volumes:" section below and the fhem mount shown in the comment.
-  alexa-fhem:
-    image: ghcr.io/fhem/alexa-fhem:5.2.1
-    restart: always
-    networks:
-      - net
-    volumes:
-      - "./alexa-fhem/:/alexa-fhem/"
-      - "alexa_fhem_log:/var/log/alexa-fhem"
-    environment:
-      ALEXAFHEM_LOGFILE: /var/log/alexa-fhem/alexa-fhem.log
-
-  # fhem container side of the shared volume (mount read-only into a subdirectory, so the FHEM log directory is not hidden):
-  #   fhem:
-  #     volumes:
-  #       - "./fhem/:/opt/fhem/"
-  #       - "alexa_fhem_log:/opt/fhem/log/alexa-fhem:ro"
-  # FHEM: define alexaFhemLog FileLog /opt/fhem/log/alexa-fhem/alexa-fhem.log fakelog
-
-# Required by the logfile example above
-volumes:
-  alexa_fhem_log:
