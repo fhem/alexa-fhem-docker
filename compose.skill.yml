@@ -1,0 +1,5 @@
+# Publishes port 3000 for the Alexa custom skill support.
+services:
+  alexa-fhem:
+    ports:
+      - "3000:3000"
