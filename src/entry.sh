@@ -13,6 +13,8 @@ declare -r  DEBUG=false
 declare -r  ALEXAFHEM_DIR="${ALEXAFHEM_DIR:-/alexa-fhem}" 
 declare -ri ALEXAFHEM_UID="${ALEXAFHEM_UID:-6062}"
 declare -ri ALEXAFHEM_GID="${ALEXAFHEM_GID:-6062}"
+ALEXAFHEM_LOGFILE="${ALEXAFHEM_LOGFILE:-}"   # Optional: also write output to this file. Disabled if empty.
+ALEXAFHEM_LOGFILE_GID="${ALEXAFHEM_LOGFILE_GID:-}"   # Optional: group allowed to read the logfile (mode 640). World-readable (644) if empty.
 
 
 
@@ -197,6 +199,54 @@ update_config() {
   fi
 }
 
+prepare_logfile() {
+  [ -z "${ALEXAFHEM_LOGFILE}" ] && return 0
+  local logdir owner
+  case "${ALEXAFHEM_LOGFILE}" in
+    /*) ;;
+    *) echo "WARNING: Logfile ${ALEXAFHEM_LOGFILE} must be an absolute path, logging to console only." >&2
+       return 1 ;;
+  esac
+  logdir="$(dirname "${ALEXAFHEM_LOGFILE}")"
+  if ! mkdir -p "${logdir}"; then
+    echo "WARNING: Cannot create log directory ${logdir}, logging to console only." >&2
+    return 1
+  fi
+  if [ "$(realpath -e "${logdir}")" != "${logdir}" ]; then
+    echo "WARNING: Log directory ${logdir} contains symlinks, logging to console only." >&2
+    return 1
+  fi
+  # Entries in a directory writable by others (e.g. the fhem container) could be swapped between check and use
+  owner="$(stat -c '%u' "${logdir}")"
+  if { [ "${owner}" != 0 ] && [ "${owner}" != "${ALEXAFHEM_UID}" ]; } || [ -n "$(find "${logdir}" -maxdepth 0 -perm /022)" ]; then
+    echo "WARNING: Log directory ${logdir} is writable by other users (mount it read-only in other containers), logging to console only." >&2
+    return 1
+  fi
+  if [ -L "${ALEXAFHEM_LOGFILE}" ]; then
+    echo "WARNING: Logfile ${ALEXAFHEM_LOGFILE} is a symlink, logging to console only." >&2
+    return 1
+  fi
+  if [ -n "${ALEXAFHEM_LOGFILE_GID}" ] && [[ ! "${ALEXAFHEM_LOGFILE_GID}" =~ ^[0-9]+$ ]]; then
+    echo "WARNING: ALEXAFHEM_LOGFILE_GID ${ALEXAFHEM_LOGFILE_GID} must be a numeric group id, logging to console only." >&2
+    return 1
+  fi
+  if [ -e "${ALEXAFHEM_LOGFILE}" ] && [ ! -f "${ALEXAFHEM_LOGFILE}" ]; then
+    echo "WARNING: Logfile ${ALEXAFHEM_LOGFILE} is not a regular file, logging to console only." >&2
+    return 1
+  fi
+  if ! touch "${ALEXAFHEM_LOGFILE}"; then
+    echo "WARNING: Cannot write logfile ${ALEXAFHEM_LOGFILE}, logging to console only." >&2
+    return 1
+  fi
+  if [ -n "${ALEXAFHEM_LOGFILE_GID}" ]; then
+    chown -h "${ALEXAFHEM_UID}:${ALEXAFHEM_LOGFILE_GID}" "${ALEXAFHEM_LOGFILE}"
+    chmod 640 "${ALEXAFHEM_LOGFILE}"
+  else
+    chown -h "${ALEXAFHEM_UID}:${ALEXAFHEM_GID}" "${ALEXAFHEM_LOGFILE}"
+    chmod 644 "${ALEXAFHEM_LOGFILE}"
+  fi
+}
+
 if [ "$#" -eq 1 ] && [ "$1" = "start" ]; then
   prepare_user_environment
   generate_ssh_keys
@@ -213,5 +263,11 @@ if [ "$#" -eq 1 ] && [ "$1" = "start" ]; then
     /pre-start.sh
   fi
   echo 'Starting alexa-fhem ...'
-  su - alexa-fhem -c "cd "${ALEXAFHEM_DIR}"; /usr/local/bin/alexa-fhem --dockerDetached"
+  if [ -n "${ALEXAFHEM_LOGFILE}" ] && prepare_logfile; then
+    echo "Writing output additionally to ${ALEXAFHEM_LOGFILE}"
+    su - alexa-fhem -c "cd "${ALEXAFHEM_DIR}"; /usr/local/bin/alexa-fhem --dockerDetached" 2>&1 \
+      | setpriv --reuid="${ALEXAFHEM_UID}" --regid="${ALEXAFHEM_GID}" --clear-groups tee -a "${ALEXAFHEM_LOGFILE}"
+  else
+    su - alexa-fhem -c "cd "${ALEXAFHEM_DIR}"; /usr/local/bin/alexa-fhem --dockerDetached"
+  fi
 fi
