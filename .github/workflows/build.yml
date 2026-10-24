@@ -74,6 +74,9 @@ jobs:
         uses: actions/checkout@v7
         with:
           fetch-depth: 0
+          # checkout >= v6 stores the GITHUB_TOKEN auth header outside .git/config, so
+          # push-protected cannot replace it and pushes to dev as github-actions[bot]
+          persist-credentials: false
 
       - name: Get alexa-fhem Version from package.json
         id: split_alexafhemV
