@@ -5,6 +5,8 @@ services:
       - "alexa_fhem_log:/var/log/alexa-fhem"
     environment:
       ALEXAFHEM_LOGFILE: /var/log/alexa-fhem/alexa-fhem.log
+      # Restrict the logfile (mode 640) to the group id of the fhem user, it contains tokens:
+      # ALEXAFHEM_LOGFILE_GID: 6061
 
   # fhem container side of the shared volume. Add this to your fhem service. Mount it read-only into a subdirectory, so the
   # FHEM log directory is not hidden:

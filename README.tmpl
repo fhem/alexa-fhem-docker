@@ -111,50 +111,13 @@ docker compose -f docker-compose.yml -f compose.env.yml -f compose.skill.yml up 
 
 For the fhem container itself see the examples in the [fhem-docker](https://github.com/fhem/fhem-docker) repository. To start alexa-fhem only after fhem is up, add `depends_on` with `condition: service_healthy` for your fhem service to the alexa-fhem service.
 
-The complete example in one file:
+alexa-fhem and the fhem container must share a network, so alexa-fhem can reach fhem via its container name. The example defines the network `net` in `docker-compose.yml`; connect your fhem container to the same network.
 
-No problem at all. To connect alexa-fhem to your alexa container, you need a common network.
-Named it fhem_net. You should connect your fhem container to the same network to support communication via alexa-fhem and fhem itself.
+The files to use can also be selected once via the environment instead of repeating `-f`:
 
 ```
-version: '2.3'
-
-networks:
-  fhem_net:
-    driver: bridge
-    ipam:
-      driver: default
-      config:
-        - subnet: 172.27.0.0/28
-          gateway: 172.27.0.1
-        - subnet: fd00:0:0:0:27::/80
-          gateway: fd00:0:0:0:27::1
-
-
-services:
-  # Minimum example w/o any custom environment variables of fhem container
-  fhem:
-    image: ghcr.io/fhem/fhem-docker:5-bookworm
-    restart: always
-    networks:
-      - fhem_net
-    ports:
-      - "8083:8083"
-    volumes:
-      - "./fhem/:/opt/fhem/"
-
- # Minimum example with some custom environment variables of alexa-fhem container
- alexa-fhem:
-    image: ghcr.io/fhem/alexa-fhem:{IMAGE_TAG}
-    restart: always
-    networks:
-     - fhem_net
-    volumes:
-      - "./alexa-fhem/:/alexa-fhem/"
-    environment:
-      ALEXAFHEM_UID: 6062
-      ALEXAFHEM_GID: 6062
-      TZ: Europe/Berlin
+export COMPOSE_FILE=docker-compose.yml:compose.env.yml:compose.skill.yml:compose.logfile.yml
+docker compose up -d
 ```
 
 If you use another name for your fhem container `fhem`, or want to use another tcp port for fhemweb connections, then you have to change the alexa-fhem config file in the volume for your alea-fhem container `./alexa-fhem/alexa-fhem.json`.
