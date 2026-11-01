@@ -1,24 +1,10 @@
-FROM node:14.20.1-buster-slim
+FROM node:22.23.4-bookworm-slim@sha256:4b150b48b4116e2a22f2c39cc27025fbf4f153e2078fd3b14d159fdb5c7279da AS base
+ENV NODE_ENV=production
 ARG TARGETPLATFORM
 
-ENV TERM xterm
-ENV LANG en_US.UTF-8
-ENV LANGUAGE en_US:en
-ENV LC_ALL en_US.UTF-8
 
-# Install base environment
-COPY src/entry.sh /entry.sh
-COPY src/ssh_known_hosts.txt /ssh_known_hosts.txt
-COPY src/health-check.sh /health-check.sh
-
-#RUN  sed -i "s/buster main/buster main contrib non-free/g" /etc/apt/sources.list \
-#    && sed -i "s/buster-updates main/buster-updates main contrib non-free/g" /etc/apt/sources.list \
-#    && sed -i "s/buster\/updates main/buster\/updates main contrib non-free/g" /etc/apt/sources.list \
 RUN  DEBIAN_FRONTEND=noninteractive apt-get update \
      && DEBIAN_FRONTEND=noninteractive apt-get install -qqy --no-install-recommends \
-        apt-utils \
-        ca-certificates \
-        gnupg \
         locales \
     \
     && DEBIAN_FRONTEND=noninteractive dpkg-reconfigure locales \
@@ -32,23 +18,33 @@ RUN  DEBIAN_FRONTEND=noninteractive apt-get update \
     \
     && DEBIAN_FRONTEND=noninteractive apt-get install -qqy --no-install-recommends \
         curl \
-        dnsutils \
-        inetutils-ping \
         jq \
-        lsb-release \
         openssh-client \
-        wget \
     && apt-get autoremove -qqy && apt-get clean \
-    && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* ~/.[^.] ~/.??* ~/*
+    && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* ~/.[!.] ~/.??* ~/*
 
-ARG ALEXAFHEM_VERSION="0.5.64"
+ENV TERM=xterm
+ENV LANG=en_US.UTF-8
+ENV LANGUAGE=en_US:en
+ENV LC_ALL=en_US.UTF-8
+
+FROM base AS alexa-fhem
+
+# Install base environment
+COPY src/entry.sh /entry.sh
+COPY src/ssh_known_hosts.txt /ssh_known_hosts.txt
+COPY src/health-check.sh /health-check.sh
+
+ARG ALEXAFHEM_VERSION="0.5.65"
 
 # Add alexa-fhem app layer
-RUN if [ "${IMAGE_LAYER_NODEJS_EXT}" != "0" ]; then \
-          npm install -g --unsafe-perm --production \
-          alexa-fhem@${ALEXAFHEM_VERSION} \
-      ; fi \
-    && rm -rf /tmp/* /var/tmp/* ~/.[^.] ~/.??* ~/* 
+COPY src/package.json /opt/app/package.json
+WORKDIR "/opt/app"
+
+
+RUN npm install \
+    && ln -s /opt/app/node_modules/alexa-fhem/bin/alexa /usr/local/bin/alexa-fhem \
+    && rm -rf /tmp/* /var/tmp/* ~/.[!.] ~/.??* ~/* 
 
 # Add alexa-fhem app layer
 COPY src/config.json /alexa-fhem.src/alexa-fhem-docker.config.json
@@ -61,14 +57,14 @@ ARG IMAGE_VCS_REF=""
 ARG IMAGE_VERSION=""
 
 # Re-usable variables during build
-ARG L_AUTHORS="Julian Pawlowski (Forum.fhem.de:@loredo, Twitter:@loredo)"
+ARG L_AUTHORS="https://github.com/fhem/alexa-fhem-docker/graphs/contributors"
 ARG L_URL="https://hub.docker.com/r/fhem/alexa-fhem-${TARGETPLATFORM}"
 ARG L_USAGE="https://github.com/fhem/alexa-fhem-docker/blob/${IMAGE_VCS_REF}/README.md"
 ARG L_VCS_URL="https://github.com/fhem/alexa-fhem-docker/"
 ARG L_VENDOR="FHEM"
 ARG L_LICENSES="MIT"
 ARG L_TITLE="alexa-fhem-${TARGETPLATFORM}"
-ARG L_DESCR="FHEM complementary Docker image for Amazon alexa voice assistant, based on Debian Buster."
+ARG L_DESCR="FHEM complementary Docker image for Amazon alexa voice assistant, based on Debian Bookworm."
 
 ARG L_AUTHORS_ALEXAFHEM="https://github.com/justme-1968/alexa-fhem/graphs/contributors"
 ARG L_URL_ALEXAFHEM="https://fhem.de/"
@@ -114,3 +110,23 @@ HEALTHCHECK --interval=20s --timeout=10s --start-period=10s --retries=5 CMD /hea
 WORKDIR "/alexa-fhem"
 ENTRYPOINT [ "/entry.sh" ]
 CMD [ "start" ]
+
+
+
+FROM alexa-fhem AS alexa-fhem-bats
+
+ADD https://github.com/bats-core/bats-core.git#v1.11.1 /tmp/bats
+RUN <<EOF
+    /tmp/bats/install.sh /opt/bats 
+    ln -s /opt/bats/bin/bats /usr/local/bin/bats 
+    rm -r /tmp/bats
+EOF
+
+ADD https://github.com/bats-core/bats-support.git#v0.3.0 /opt/bats/test_helper/bats-support
+ADD https://github.com/bats-core/bats-assert.git#v2.1.0 /opt/bats/test_helper/bats-assert
+ADD https://github.com/bats-core/bats-file.git /opt/bats/test_helper/bats-file
+ADD https://github.com/grayhemp/bats-mock.git /opt/bats/test_helper/bats-mock
+
+WORKDIR /code/
+
+ENTRYPOINT [ "/usr/local/bin/bats" ]

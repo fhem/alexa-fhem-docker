@@ -4,12 +4,17 @@ on:
   push:
   pull_request:
   release:
-    types: # This configuration does not affect the page_build event above
+    types: 
       - published
-      - released
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
+
+env:
+  # Use docker.io for Docker Hub if empty
+  REGISTRY: ghcr.io
+  # github.repository as <account>/<repo>
+  IMAGE_NAME: ${{ github.repository_owner }}/alexa-fhem
 
 jobs:
   test_build:
@@ -18,145 +23,191 @@ jobs:
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
       - name: Checkout this repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0
-
-      - name: Docker Setup QEMU
-        uses: docker/setup-qemu-action@v2.0.0
-        with:
-          image: tonistiigi/binfmt:latest
-          platforms: all
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2
       
-      - name: Cache Docker layers
-        uses: actions/cache@v3
-        with:
-          path: /tmp/.buildx-cache
-          key: ${{ runner.os }}-build-${{ github.sha }}
-          restore-keys: |
-             ${{ runner.os }}-build-
-             ${{ runner.os }}-buildx-
+      - name: Get alexa-fhem Version from package.json
+        id: split_alexafhemV
+        run: |
+          echo "result=$(awk -F'"' '/"alexa-fhem": ".+"/{ print $4; exit; }' src/package.json | sed 's/\^//')" >> $GITHUB_OUTPUT
 
-      - name: Docker meta
-        id: meta
-        uses: docker/metadata-action@v4
+      - name: Build image and run integrationtests (amd64)
+        id: build_and_run_integrationtest
+        uses: ./.github/actions/integrationtest
         with:
-          images: fhem/alexa-fhem
-          flavor: |
-             latest= ${{ fromJSON('["auto", "false"]')[github.event.release.prerelease == 1] }}
-          tags: |
-            type=semver,pattern={{version}}
-            type=semver,pattern={{major}},enable=${{ github.event.release.prerelease == 0 }}
-            type=ref,event=branch
-            type=ref,event=pr
+           PLATTFORM: linux/amd64
+           ALEXAFHEM_VERSION: ${{ steps.split_alexafhemV.outputs.result }}
 
-      - name: Build for test full blown amd64 
-        uses: docker/build-push-action@v3
-        id: docker_build
+      - name: Build for bats with fhem base layer
+        uses: docker/build-push-action@v7.4.0
+        id: docker_build_bats
         with:
           context: .
           load: true  
           file: ./Dockerfile
           platforms: linux/amd64
           push: false
-          cache-from: type=local,src=/tmp/.buildx-cache
-          cache-to: type=local,mode=max,dest=/tmp/.buildx-cache
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
-          build-args: |
-            BUILD_DATE=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.created'] }}
-            IMAGE_VERSION=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.version'] }}
-            IMAGE_VCS_REF=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.revision'] }}
-            ALEXAFHEM_VERSION=0.5.64
-            L_USAGE=${{ github.server_url }}/${{ github.repository }}/blob/${{ github.sha }}/README.md
-            L_VCS_URL=${{ github.server_url }}/${{ github.repository }}/
-            L_AUTHORS=${{ github.server_url }}/${{ github.repository }}/graphs/contributors
+          target: alexa-fhem-bats
+          cache-from: | 
+            type=gha,scope=verify_runtime_linux/amd64
+          tags: bats-withalexafhem
 
-      - name: Inspect and run integration tests
-        run: |
-          docker image inspect ${{ fromJSON(steps.meta.outputs.json).tags[0] }}
-          docker history ${{ fromJSON(steps.meta.outputs.json).tags[0] }}
-          ./scripts/test-integration.sh ${{ fromJSON(steps.meta.outputs.json).tags[0] }};
-
+      - uses: Wandalen/wretry.action@v3.8.0
+        name: Run bats unit and integration tests in bidge network mode
+        with:
+          attempt_limit: 3
+          command: timeout 9m docker run --rm -e GITHUB_RUN_ID=$GITHUB_RUN_ID -v "${PWD}/src/tests/bats:/code" bats-withalexafhem:latest -T -t .   
   published_build:
     runs-on: ubuntu-latest
     needs: test_build
+    permissions:
+      contents: write
+      packages: write
+      # This is used to complete the identity challenge
+      # with sigstore/fulcio when running outside of PRs.
+      id-token: write
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
       - name: Checkout this repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0
+          # checkout >= v6 stores the GITHUB_TOKEN auth header outside .git/config, so
+          # push-protected cannot replace it and pushes to dev as github-actions[bot]
+          persist-credentials: false
+
+      - name: Get alexa-fhem Version from package.json
+        id: split_alexafhemV
+        run: |
+          echo "result=$(awk -F'"' '/"alexa-fhem": ".+"/{ print $4; exit; }' src/package.json | sed 's/\^//')" >> $GITHUB_OUTPUT
+
+      - name: Extract Image from Dockerfile
+        if: ${{ github.event_name == 'release' }}
+        id: extract_image
+        run: |
+           echo "image_name=$(grep -m 1 '^FROM' Dockerfile | cut -d ' ' -f2 | cut -d ':' -f1)" >> $GITHUB_OUTPUT
+           echo "image_version=$(grep -m1 '^FROM' Dockerfile | cut -d ' ' -f2 | cut -d ':' -f2 | cut -d '.' -f1)" >> $GITHUB_OUTPUT
+           echo "image_base=$(grep -m1 '^FROM' Dockerfile | cut -d ' ' -f2 | cut -d '@' -f1 | cut -d ':' -f2 | cut -d '-' -f2,3)" >> $GITHUB_OUTPUT
+
+
+      - name: Setup Docker buildx
+        uses: docker/setup-buildx-action@v4
 
       - name: Docker Setup QEMU
-        uses: docker/setup-qemu-action@v2.0.0
-        with:
-          image: tonistiigi/binfmt:latest
-          platforms: all
+        uses: docker/setup-qemu-action@v4.4.0
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2
-      
-      - name: Cache Docker layers
-        uses: actions/cache@v3
+      # Login against a Docker registry if it is a release
+      # https://github.com/docker/login-action
+      - name: Log into registry ${{ env.REGISTRY }}
+        if: ${{ github.event_name == 'release' || contains(github.event.pull_request.labels.*.name, 'publishImage') }}
+        uses: docker/login-action@v4.7.0
         with:
-          path: /tmp/.buildx-cache
-          key: ${{ runner.os }}-buildx-${{ github.sha }}
-          restore-keys: |
-           ${{ runner.os }}-buildx-
-           ${{ runner.os }}-build-
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Docker meta
+      - name: Login to DockerHub
+        if: github.event_name == 'release'
+        uses: docker/login-action@v4.7.0 
+        with:
+          username: ${{ secrets.DOCKER_HUB_USERNAME }}
+          password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
+
+      - name: Extract Docker metadata
         id: meta
-        uses: docker/metadata-action@v4
+        uses: docker/metadata-action@v6.2.0
         with:
-          images: |
-            ghcr.io/${{ github.repository_owner }}/fhem/alexa-fhem
-            fhem/alexa-fhem
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           flavor: |
-             latest= ${{ fromJSON('["auto", "false"]')[github.event.release.prerelease == 1] }}
+            latest= ${{ fromJSON('["auto", "false"]')[github.event.release.prerelease == 1] }}
           tags: |
             type=semver,pattern={{version}}
             type=semver,pattern={{major}},enable=${{ github.event.release.prerelease == 0 }}
             type=ref,event=branch
             type=ref,event=pr
-            
-      - name: Login to GitHub Container Registry
-        if: github.event_name == 'release'
-        uses: docker/login-action@v2 
-        with:
-          registry: ghcr.io
-          username: ${{ github.repository_owner }}
-          password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Login to DockerHub
-        if: github.event_name == 'release'
-        uses: docker/login-action@v2 
-        with:
-          username: ${{ secrets.DOCKER_HUB_USERNAME }}
-          password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
-          
-      - name: Build and push cross compiled full blown image on supported platforms
-        uses: docker/build-push-action@v3
+      - name: Update docs
+        if: ${{ github.event_name == 'release' }}
+        run: |
+            sed -e "s/{ALEXAFHEM_VERSION}/${{ steps.split_alexafhemV.outputs.result}}/g" -e "s/{NODE_VERSION}/${{ steps.extract_image.outputs.image_version}}/g" -e "s/{DEBIAN_RELEASE}/${{ steps.extract_image.outputs.image_base}}/g" -e s/{IMAGE_TAG}/${DOCKER_METADATA_OUTPUT_VERSION}/g < README.tmpl > README.md
+    
+      - name: Build and push Docker image for all plattforms
+        uses: docker/build-push-action@v7.4.0
+        id: docker_build_runtime_cross
         with:
           context: .
           load: false  
           file: ./Dockerfile
           platforms: linux/amd64,linux/arm/v7,linux/arm64
-          push: ${{ github.event_name == 'release' }}
-          cache-from: type=local,src=/tmp/.buildx-cache
-          cache-to: type=local,mode=max,dest=/tmp/.buildx-cache
+          push: ${{ github.event_name == 'release' || contains(github.event.pull_request.labels.*.name, 'publishImage') }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+          cache-from: | 
+            type=gha,scope=verify_runtime_linux/amd64
+            type=gha,scope=publish_runtime_cross
+          cache-to: type=gha,mode=max,scope=publish_runtime_cross
           build-args: |
             BUILD_DATE=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.created'] }}
             IMAGE_VERSION=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.version'] }}
             IMAGE_VCS_REF=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.revision'] }}
-            ALEXAFHEM_VERSION=0.5.64
+            ALEXAFHEM_VERSION=${{ steps.split_alexafhemV.outputs.result }}
             L_USAGE=${{ github.server_url }}/${{ github.repository }}/blob/${{ github.sha }}/README.md
             L_VCS_URL=${{ github.server_url }}/${{ github.repository }}/
             L_AUTHORS=${{ github.server_url }}/${{ github.repository }}/graphs/contributors
+          target: alexa-fhem
+
+      - name: Install cosign
+        uses: sigstore/cosign-installer@v4.1.2
+
+      # Sign the resulting Docker image digest except on PRs.
+      # This will only write to the public Rekor transparency log when the Docker
+      # repository is public to avoid leaking data.  If you would like to publish
+      # transparency data even for private images, pass --force to cosign below.
+      # https://github.com/sigstore/cosign
+      - name: Sign the published Docker image
+        if: ${{ github.event_name == 'release' }}
+        # This step uses the identity token to provision an ephemeral certificate
+        # against the sigstore community Fulcio instance.
+        run: echo "${{ steps.meta.outputs.tags }}" | xargs -I {} cosign sign --yes {}@${{ steps.docker_build_runtime_cross.outputs.digest }}
+      
+      - name: git commit README.md 
+        id: commit
+        if: ${{ github.event_name == 'release' }}
+        run: |
+          git config --global user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git commit -m "README.md: Update Versions" -a && echo "status=true" >> $GITHUB_OUTPUT || true
+      
+      # target_commitish may be a commit SHA, so determine the branch from the tag commit.
+      # push-protected does not force push, so only a branch whose tip is the tag commit
+      # can take the README commit. Prefer target_commitish, then v<major> (e.g. v5), then dev.
+      - name: Determine branch for README push back
+        id: relbranch
+        if: ${{ github.event_name == 'release' }}
+        env:
+          TC: ${{ github.event.release.target_commitish }}
+          TAG: ${{ github.event.release.tag_name }}
+        run: |
+          major="${TAG#v}"; major="${major%%.*}"
+          mapfile -t candidates < <(git for-each-ref --points-at "${GITHUB_SHA}" \
+            --format='%(refname:lstrip=3)' refs/remotes/origin/ | grep -vx HEAD || true)
+          in_candidates() { local c; for c in "${candidates[@]}"; do [ "$c" = "$1" ] && return 0; done; return 1; }
+          if [ -n "${TC}" ] && in_candidates "${TC}"; then branch="${TC}"
+          elif in_candidates "v${major}"; then branch="v${major}"
+          elif in_candidates "dev"; then branch="dev"
+          else
+            branch=""
+            echo "::warning::No branch tip at ${GITHUB_SHA} (candidates: ${candidates[*]:-none}), skipping README push back"
+          fi
+          echo "Pushing README back to: ${branch:-<skipped>}"
+          echo "branch=${branch}" >> "$GITHUB_OUTPUT"
+
+      - name: Push back to protected release branch
+        uses: CasperWA/push-protected@v2
+        if: ${{ github.event_name == 'release' && steps.relbranch.outputs.branch != '' }}
+        with:
+          token: ${{ secrets.BOT_PUSH_TOKEN }}
+          branch: ${{ steps.relbranch.outputs.branch }}
+          #unprotect_reviews: true

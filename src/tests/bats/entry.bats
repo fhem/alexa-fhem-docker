@@ -1,0 +1,333 @@
+#!/usr/bin/env bats
+
+setup() {
+ 
+  load '/opt/bats/test_helper/bats-support/load.bash'
+  load '/opt/bats/test_helper/bats-assert/load.bash'
+  load '/opt/bats/test_helper/bats-file/load.bash'
+  #load '/opt/bats/test_helper/bats-mock/load.bash'
+
+  set -a
+  source /entry.sh
+  set +a
+  
+  mkdir -p "${ALEXAFHEM_DIR}"
+  cp  /tmp/alexa-fhem-docker.config.json /alexa-fhem.src/alexa-fhem-docker.config.json
+}
+
+setup_file() {  
+
+  bats_require_minimum_version 1.5.0
+ 
+  export ALEXAFHEM_DIR="/tmp/alexa-fhem"
+  export ALEXAFHEM_GID=6062
+  export ALEXAFHEM_UID=6062
+  export DEBUG=false
+
+  cp /alexa-fhem.src/alexa-fhem-docker.config.json /tmp/alexa-fhem-docker.config.json
+
+  mkdir -p /alexa-fhem.src
+
+}
+
+teardown() {
+  rm -rf ${ALEXAFHEM_DIR}/*
+
+  sleep 0
+}
+
+teardown_file() {
+  rm -rf ${ALEXAFHEM_DIR}
+  rm  /tmp/alexa-fhem-docker.config.json
+
+  sleep 0
+}
+
+
+@test "Test prepare_user_environment function" {
+  
+
+  run -0 prepare_user_environment
+  assert_file_exists  /image_info.EMPTY
+}
+
+@test "Test pin_ssh_keys function" {
+  mkdir -p ${ALEXAFHEM_DIR}/.ssh
+  touch "${ALEXAFHEM_DIR}"/.ssh/known_hosts
+
+  assert_file_exists "/ssh_known_hosts.txt"
+  run -0 pin_ssh_keys
+
+  assert_file_not_exists "${ALEXAFHEM_DIR}"/.ssh/known_hosts.tmp
+  assert_file_exists "${ALEXAFHEM_DIR}"/.ssh/known_hosts 
+  
+  assert_file_contains  "${ALEXAFHEM_DIR}"/.ssh/known_hosts "fhem-va.fhem.de"
+}
+
+@test "Test harden_ssh_client function new config file" {
+    run -0 harden_ssh_client
+
+    assert_file_exists "${ALEXAFHEM_DIR}"/.ssh/config
+    assert_file_contains "${ALEXAFHEM_DIR}"/.ssh/config "IdentityFile ~/.ssh/id_rsa"
+    assert_file_contains "${ALEXAFHEM_DIR}"/.ssh/config "Ciphers aes128-ctr"
+    assert_file_contains "${ALEXAFHEM_DIR}"/.ssh/config "PubkeyAcceptedKeyTypes +ssh-rsa"
+    assert_file_contains "${ALEXAFHEM_DIR}"/.ssh/config "MACs.*hmac-sha2-256" egrep
+    assert_file_contains "${ALEXAFHEM_DIR}"/.ssh/config "MACs.*hmac-sha2-512" egrep
+}
+
+
+@test "Test harden_ssh_client function patch existing config file" {
+    printf "%s\n" \
+      "IdentityFile ~/.ssh/id_ed25519" \
+      "IdentityFile ~/.ssh/id_rsa" \
+      "MACs hmac-sha2-256,hmac-sha2-512,hmac-sha2-512-etm@openssh.com,hmac-sha2-256-etm@openssh.com,umac-128-etm@openssh.com" \
+      "KexAlgorithms sntrup761x25519-sha512@openssh.com,curve25519-sha256,curve25519-sha256@libssh.org,gss-curve25519-sha256-,diffie-hellman-group16-sha512,gss-group16-sha512-,diffie-hellman-group18-sha512,diffie-hellman-group-exchange-sha256" \
+      "Ciphers aes128-ctr,aes192-ctr,aes256-ctr,aes128-gcm@openssh.com,aes256-gcm@openssh.com" > "${ALEXAFHEM_DIR}"/.ssh/config
+
+    assert_file_exists "${ALEXAFHEM_DIR}"/.ssh/config
+    run -0 harden_ssh_client
+
+    assert_file_contains "${ALEXAFHEM_DIR}"/.ssh/config "IdentityFile ~/.ssh/id_rsa"
+    assert_file_contains "${ALEXAFHEM_DIR}"/.ssh/config "Ciphers aes128-ctr"
+    assert_file_contains "${ALEXAFHEM_DIR}"/.ssh/config "PubkeyAcceptedKeyTypes +ssh-rsa"
+    assert_file_contains "${ALEXAFHEM_DIR}"/.ssh/config "MACs.*hmac-sha2-256" egrep
+    assert_file_contains "${ALEXAFHEM_DIR}"/.ssh/config "MACs.*hmac-sha2-512" egrep
+}
+
+
+
+@test "Test harden_ssh_client function keeps an up to date config file" {
+    rm -rf "${ALEXAFHEM_DIR}"/.ssh
+    mkdir -p "${ALEXAFHEM_DIR}"/.ssh
+
+    run -0 harden_ssh_client
+    assert_output --partial "Create a new ssh config file"
+    cp "${ALEXAFHEM_DIR}"/.ssh/config "${BATS_TEST_TMPDIR}"/config.first
+
+    run -0 harden_ssh_client
+    assert_output --partial "Existing ssh config file is up to date."
+    refute_output --partial "Patching ssh config file"
+    assert_file_not_exists "${ALEXAFHEM_DIR}"/.ssh/config.old
+    run -0 cmp "${BATS_TEST_TMPDIR}"/config.first "${ALEXAFHEM_DIR}"/.ssh/config
+}
+
+@test "Test harden_ssh_client function keeps the backup of a patched config on restart" {
+    rm -rf "${ALEXAFHEM_DIR}"/.ssh
+    mkdir -p "${ALEXAFHEM_DIR}"/.ssh
+    printf "%s\n" "Host myhost" "  Port 2222" > "${ALEXAFHEM_DIR}"/.ssh/config
+
+    run -0 harden_ssh_client
+    assert_output --partial "Patching ssh config file"
+    assert_file_contains "${ALEXAFHEM_DIR}"/.ssh/config.old "Host myhost"
+
+    # second start must not patch again and must not overwrite the backup
+    run -0 harden_ssh_client
+    assert_output --partial "Existing ssh config file is up to date."
+    assert_file_contains "${ALEXAFHEM_DIR}"/.ssh/config.old "Host myhost"
+}
+
+
+
+@test "Move config.json from .alexa to ${ALEXAFHEM_DIR}/alexa-fhem" {
+  
+  mkdir -p "${ALEXAFHEM_DIR}"/.alexa
+
+  echo "{My test file}" > "${ALEXAFHEM_DIR}"/.alexa/config.json
+  run -0 move_configurations
+  
+  assert_file_exists "${ALEXAFHEM_DIR}"/config.json
+  assert_output --partial "Moving configuration from ${ALEXAFHEM_DIR}/.alexa/config.json to ${ALEXAFHEM_DIR}/config.json"
+  assert_file_contains "${ALEXAFHEM_DIR}"/config.json "My test file"
+  
+  assert_link_exists "${ALEXAFHEM_DIR}"/.alexa/config.json
+}
+
+
+@test "Move alexa-fhem.json to ${ALEXAFHEM_DIR}/config.json" {
+  echo "{My test file from volume}" > "${ALEXAFHEM_DIR}"/alexa-fhem.json
+  run -0 move_configurations
+  
+  assert_output --partial "Moving configuration from ${ALEXAFHEM_DIR}/alexa-fhem.json to ${ALEXAFHEM_DIR}/config.json ..."
+  assert_file_contains "${ALEXAFHEM_DIR}"/config.json "My test file from volume"
+}
+
+
+
+@test "Create default config in ${ALEXAFHEM_DIR}/config.json" {
+  echo "{CONFIG FROM DOCKER IMAGE}" > /alexa-fhem.src/alexa-fhem-docker.config.json
+
+  run -0 move_configurations
+
+  assert_file_exists "${ALEXAFHEM_DIR}"/config.json
+  assert_output --partial "Creating default config in ${ALEXAFHEM_DIR}/config.json ..."
+  assert_file_contains "${ALEXAFHEM_DIR}"/config.json "CONFIG FROM DOCKER IMAGE"
+  assert_file_exists /alexa-fhem.src/alexa-fhem-docker.config.json
+}
+
+@test "Create symlink to ${ALEXAFHEM_DIR}/config.json in ${ALEXAFHEM_DIR}/.alexa" {
+  echo "{MY LINKED CONFIG FILE}" > "${ALEXAFHEM_DIR}"/config.json
+  run -0  move_configurations
+
+  assert_output --partial "Creating symlink to ${ALEXAFHEM_DIR}/config.json in ${ALEXAFHEM_DIR}/.alexa/config.json ..."
+  assert_link_exists "${ALEXAFHEM_DIR}"/.alexa/config.json
+  assert_link_exists "${ALEXAFHEM_DIR}"/alexa-fhem.json
+
+  assert_symlink_to "${ALEXAFHEM_DIR}"/config.json "${ALEXAFHEM_DIR}"/.alexa/config.json
+  assert_symlink_to "${ALEXAFHEM_DIR}"/config.json "${ALEXAFHEM_DIR}"/alexa-fhem.json
+
+  assert_file_contains "${ALEXAFHEM_DIR}"/config.json "MY LINKED CONFIG FILE"
+}
+
+
+@test "Test update_connections function overwrite key" {
+  move_configurations
+
+  export CONFIG_connections_0_server='my.server.io'
+
+  run -0  update_config "${ALEXAFHEM_DIR}"/config.json
+
+  run -0 jq -e '.connections[0].server == "my.server.io"' "${ALEXAFHEM_DIR}"/config.json
+  run -0 jq -e '.connections[0].server != "fhem"' "${ALEXAFHEM_DIR}"/config.json
+  run -0 jq -e '.connections[0].server | type == "string"' "${ALEXAFHEM_DIR}"/config.json
+
+  echo "#" >&3 && cat "${ALEXAFHEM_DIR}"/config.json >&3
+}
+
+@test "Test update_connections function add new key" {
+  move_configurations
+  #export DEBUG=true
+
+  export CONFIG_connections_0_ssl="true"
+  run -0  update_config "${ALEXAFHEM_DIR}"/config.json
+
+  run -0 jq -e '.connections[0].ssl == true' "${ALEXAFHEM_DIR}"/config.json
+  run -0 jq -e '.connections[0].ssl | type == "boolean"' "${ALEXAFHEM_DIR}"/config.json
+  echo "#" >&3 && cat "${ALEXAFHEM_DIR}"/config.json >&3
+}
+
+
+@test "Test update_config function update and add multiple keys" {
+  prepare_user_environment
+  move_configurations
+  export DEBUG=false
+  
+  export CONFIG_alexa_port="4000"
+  export CONFIG_alexa_name="myServer"
+  export CONFIG_alexa_ssl=true 
+  export CONFIG_connections_0_port='8088'
+  export CONFIG_connections_0_filter='alexaName=..*'
+  export CONFIG_connections_0_server='fhem.docker.local'
+  export CONFIG_connections_0_ssl=true
+  export CONFIG_sshproxy_description='my special ssl client'
+  export CONFIG_sshproxy_ssh='/usr/bin/ssh2'
+  #export CONFIG_sshproxy_special='special Value'  
+  
+  run -0  update_config "${ALEXAFHEM_DIR}"/config.json
+  echo "#" >&3 && cat "${ALEXAFHEM_DIR}"/config.json >&3
+
+
+  run -0 jq -e '.alexa.port == 4000' "${ALEXAFHEM_DIR}"/config.json
+  run -0 jq -e '.alexa.port | type == "number"' "${ALEXAFHEM_DIR}"/config.json
+  run -0 jq -e '.alexa.name == "myServer"' "${ALEXAFHEM_DIR}"/config.json
+  run -0 jq -e '.alexa.ssl == true' "${ALEXAFHEM_DIR}"/config.json
+  run -0 jq -e '.connections[0].port == 8088' "${ALEXAFHEM_DIR}"/config.json
+  run -0 jq -e '.connections[0].filter == "alexaName=..*"' "${ALEXAFHEM_DIR}"/config.json
+  run -0 jq -e '.connections[0].server == "fhem.docker.local"' "${ALEXAFHEM_DIR}"/config.json
+  run -0 jq -e '.connections[0].ssl == true' "${ALEXAFHEM_DIR}"/config.json
+  run -0 jq -e '.connections[0].ssl | type == "boolean"' "${ALEXAFHEM_DIR}"/config.json
+  run -0 jq -e '.sshproxy.description == "my special ssl client"' "${ALEXAFHEM_DIR}"/config.json
+  run -0 jq -e '.sshproxy.ssh == "/usr/bin/ssh2"' "${ALEXAFHEM_DIR}"/config.json
+}
+
+
+@test "Test prepare_logfile function is a noop by default" {
+  export ALEXAFHEM_LOGFILE=""
+  run -0 prepare_logfile
+  assert_file_not_exists "/tmp/alexa-fhem-log/alexa-fhem.log"
+}
+
+@test "Test prepare_logfile function creates logfile and directory" {
+  prepare_user_environment
+  export ALEXAFHEM_LOGFILE="/tmp/alexa-fhem-log/alexa-fhem.log"
+  run -0 prepare_logfile
+  assert_file_exists "${ALEXAFHEM_LOGFILE}"
+  run -0 stat -c '%u:%g %a' "${ALEXAFHEM_LOGFILE}"
+  assert_output "6062:6062 644"
+  rm -rf /tmp/alexa-fhem-log
+}
+
+@test "Test prepare_logfile function fails on unwritable location" {
+  export ALEXAFHEM_LOGFILE="/proc/alexa-fhem/alexa-fhem.log"
+  run -1 prepare_logfile
+}
+
+@test "Test prepare_logfile function rejects a directory" {
+  mkdir -p /tmp/alexa-fhem-log/sub
+  export ALEXAFHEM_LOGFILE="/tmp/alexa-fhem-log/sub"
+  run -1 prepare_logfile
+  run -0 stat -c '%a' /tmp/alexa-fhem-log/sub
+  refute_output "644"
+  rm -rf /tmp/alexa-fhem-log
+}
+
+@test "Test prepare_logfile function rejects a symlink" {
+  mkdir -p /tmp/alexa-fhem-log
+  touch /tmp/alexa-fhem-log/target
+  chmod 600 /tmp/alexa-fhem-log/target
+  ln -s /tmp/alexa-fhem-log/target /tmp/alexa-fhem-log/alexa-fhem.log
+  export ALEXAFHEM_LOGFILE="/tmp/alexa-fhem-log/alexa-fhem.log"
+  run -1 prepare_logfile
+  run -0 stat -c '%a' /tmp/alexa-fhem-log/target
+  assert_output "600"
+  rm -rf /tmp/alexa-fhem-log
+}
+
+@test "Test prepare_logfile function rejects a relative path" {
+  export ALEXAFHEM_LOGFILE="alexa-fhem.log"
+  run -1 prepare_logfile
+}
+
+@test "Test prepare_logfile function rejects a log directory owned by another user" {
+  mkdir -p /tmp/alexa-fhem-log
+  chown 6061:6061 /tmp/alexa-fhem-log
+  chmod 0750 /tmp/alexa-fhem-log
+  export ALEXAFHEM_LOGFILE="/tmp/alexa-fhem-log/alexa-fhem.log"
+  run -1 prepare_logfile
+  assert_file_not_exists "${ALEXAFHEM_LOGFILE}"
+  rm -rf /tmp/alexa-fhem-log
+}
+
+@test "Test prepare_logfile function rejects a group writable log directory" {
+  mkdir -p /tmp/alexa-fhem-log
+  chmod 0775 /tmp/alexa-fhem-log
+  export ALEXAFHEM_LOGFILE="/tmp/alexa-fhem-log/alexa-fhem.log"
+  run -1 prepare_logfile
+  assert_file_not_exists "${ALEXAFHEM_LOGFILE}"
+  rm -rf /tmp/alexa-fhem-log
+}
+
+@test "Test prepare_logfile function rejects a symlinked log directory" {
+  mkdir -p /tmp/alexa-fhem-log/real
+  ln -s /tmp/alexa-fhem-log/real /tmp/alexa-fhem-log/link
+  export ALEXAFHEM_LOGFILE="/tmp/alexa-fhem-log/link/alexa-fhem.log"
+  run -1 prepare_logfile
+  assert_file_not_exists "/tmp/alexa-fhem-log/real/alexa-fhem.log"
+  rm -rf /tmp/alexa-fhem-log
+}
+
+@test "Test prepare_logfile function restricts logfile to ALEXAFHEM_LOGFILE_GID" {
+  export ALEXAFHEM_LOGFILE="/tmp/alexa-fhem-log/alexa-fhem.log"
+  export ALEXAFHEM_LOGFILE_GID=6061
+  run -0 prepare_logfile
+  run -0 stat -c '%u:%g %a' "${ALEXAFHEM_LOGFILE}"
+  assert_output "6062:6061 640"
+  rm -rf /tmp/alexa-fhem-log
+}
+
+@test "Test prepare_logfile function rejects a non numeric ALEXAFHEM_LOGFILE_GID" {
+  export ALEXAFHEM_LOGFILE="/tmp/alexa-fhem-log/alexa-fhem.log"
+  export ALEXAFHEM_LOGFILE_GID="fhem"
+  run -1 prepare_logfile
+  assert_file_not_exists "${ALEXAFHEM_LOGFILE}"
+  rm -rf /tmp/alexa-fhem-log
+}
