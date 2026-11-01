@@ -180,10 +180,34 @@ jobs:
           git config --local user.name "GitHub Action"
           git commit -m "README.md: Update Versions" -a && echo "status=true" >> $GITHUB_OUTPUT || true
       
-      - name: Push back to protected branch (main)
-        uses: CasperWA/push-protected@v2
+      # target_commitish may be a commit SHA, so determine the branch from the tag commit.
+      # push-protected does not force push, so only a branch whose tip is the tag commit
+      # can take the README commit. Prefer target_commitish, then v<major> (e.g. v5), then dev.
+      - name: Determine branch for README push back
+        id: relbranch
         if: ${{ github.event_name == 'release' }}
+        env:
+          TC: ${{ github.event.release.target_commitish }}
+          TAG: ${{ github.event.release.tag_name }}
+        run: |
+          major="${TAG#v}"; major="${major%%.*}"
+          mapfile -t candidates < <(git for-each-ref --points-at "${GITHUB_SHA}" \
+            --format='%(refname:lstrip=3)' refs/remotes/origin/ | grep -vx HEAD || true)
+          in_candidates() { local c; for c in "${candidates[@]}"; do [ "$c" = "$1" ] && return 0; done; return 1; }
+          if [ -n "${TC}" ] && in_candidates "${TC}"; then branch="${TC}"
+          elif in_candidates "v${major}"; then branch="v${major}"
+          elif in_candidates "dev"; then branch="dev"
+          else
+            branch=""
+            echo "::warning::No branch tip at ${GITHUB_SHA} (candidates: ${candidates[*]:-none}), skipping README push back"
+          fi
+          echo "Pushing README back to: ${branch:-<skipped>}"
+          echo "branch=${branch}" >> "$GITHUB_OUTPUT"
+
+      - name: Push back to protected release branch
+        uses: CasperWA/push-protected@v2
+        if: ${{ github.event_name == 'release' && steps.relbranch.outputs.branch != '' }}
         with:
           token: ${{ secrets.BOT_PUSH_TOKEN }}
-          branch: dev
+          branch: ${{ steps.relbranch.outputs.branch }}
           #unprotect_reviews: true

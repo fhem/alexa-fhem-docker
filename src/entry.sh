@@ -56,32 +56,36 @@ generate_ssh_keys() {
 }
 
 harden_ssh_client() {
+  # Desired ssh client options, defined once for writing and checking the config
+  local -a ssh_options=(
+    "IdentityFile ~/.ssh/id_ed25519"
+    "IdentityFile ~/.ssh/id_rsa"
+    "PubkeyAcceptedKeyTypes +ssh-rsa"
+    "MACs hmac-sha2-256,hmac-sha2-512,hmac-sha2-512-etm@openssh.com,hmac-sha2-256-etm@openssh.com,umac-128-etm@openssh.com"
+    "KexAlgorithms sntrup761x25519-sha512@openssh.com,curve25519-sha256,curve25519-sha256@libssh.org,diffie-hellman-group16-sha512,diffie-hellman-group18-sha512,diffie-hellman-group-exchange-sha256"
+    "Ciphers aes128-ctr,aes192-ctr,aes256-ctr,aes128-gcm@openssh.com,aes256-gcm@openssh.com"
+  )
+  local ssh_config="${ALEXAFHEM_DIR}/.ssh/config"
+  local option needs_patch=false
+
   echo "Harden ssh client configuration for user alexa-fhem..."
-  if [ ! -f ${ALEXAFHEM_DIR}/.ssh/config ]; then
+  if [ ! -f "${ssh_config}" ]; then
     echo "  - Create a new ssh config file..."
-    printf "%s\n" \
-           "IdentityFile ~/.ssh/id_ed25519" \
-           "IdentityFile ~/.ssh/id_rsa" \
-           "PubkeyAcceptedKeyTypes +ssh-rsa" \
-           "MACs hmac-sha2-256,hmac-sha2-512,hmac-sha2-512-etm@openssh.com,hmac-sha2-256-etm@openssh.com,umac-128-etm@openssh.com" \
-           "KexAlgorithms sntrup761x25519-sha512@openssh.com,curve25519-sha256,curve25519-sha256@libssh.org,diffie-hellman-group16-sha512,diffie-hellman-group18-sha512,diffie-hellman-group-exchange-sha256" \
-           "Ciphers aes128-ctr,aes192-ctr,aes256-ctr,aes128-gcm@openssh.com,aes256-gcm@openssh.com" > "${ALEXAFHEM_DIR}"/.ssh/config
+    printf "%s\n" "${ssh_options[@]}" > "${ssh_config}"
   else
     echo "  - Existing ssh config file found. Checking if it needs patching..."
-    if ! grep -q "IdentityFile ~/.ssh/id_rsa" "${ALEXAFHEM_DIR}/.ssh/config" || \
-       ! grep -q "PubkeyAcceptedKeyTypes \+ssh-rsa" "${ALEXAFHEM_DIR}/.ssh/config" || \
-       ! grep -q "MACs hmac-sha2-256,hmac-sha2-512,hmac-sha2-512-etm@openssh.com,hmac-sha2-256-etm@openssh.com,umac-128-etm@openssh.com" "${ALEXAFHEM_DIR}/.ssh/config" || \
-       ! grep -q "KexAlgorithms sntrup761x25519-sha512@openssh.com,curve25519-sha256,curve25519-sha256@libssh.org,diffie-hellman-group16-sha512,diffie-hellman-group18-sha512,diffie-hellman-group-exchange-sha256" "${ALEXAFHEM_DIR}/.ssh/config" || \
-       ! grep -q "Ciphers aes128-ctr,aes192-ctr,aes256-ctr,aes128-gcm@openssh.com,aes256-gcm@openssh.com" "${ALEXAFHEM_DIR}/.ssh/config"; then
+    # -F: fixed strings, options contain regex characters like '+' and '.'
+    # -x: the whole line must match
+    for option in "${ssh_options[@]}"; do
+      if ! grep -qxF -- "${option}" "${ssh_config}"; then
+        needs_patch=true
+        break
+      fi
+    done
+    if [ "${needs_patch}" = true ]; then
       echo "  - Patching ssh config file..."
-      mv "${ALEXAFHEM_DIR}/.ssh/config" "${ALEXAFHEM_DIR}/.ssh/config.old"
-      printf "%s\n" \
-             "IdentityFile ~/.ssh/id_ed25519" \
-             "IdentityFile ~/.ssh/id_rsa" \
-             "PubkeyAcceptedKeyTypes +ssh-rsa" \
-             "MACs hmac-sha2-256,hmac-sha2-512,hmac-sha2-512-etm@openssh.com,hmac-sha2-256-etm@openssh.com,umac-128-etm@openssh.com" \
-             "KexAlgorithms sntrup761x25519-sha512@openssh.com,curve25519-sha256,curve25519-sha256@libssh.org,diffie-hellman-group16-sha512,diffie-hellman-group18-sha512,diffie-hellman-group-exchange-sha256" \
-             "Ciphers aes128-ctr,aes192-ctr,aes256-ctr,aes128-gcm@openssh.com,aes256-gcm@openssh.com" > "${ALEXAFHEM_DIR}/.ssh/config"
+      mv "${ssh_config}" "${ssh_config}.old"
+      printf "%s\n" "${ssh_options[@]}" > "${ssh_config}"
     else
       echo "  - Existing ssh config file is up to date."
     fi

@@ -1,9 +1,10 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": [
-    "config:base",
+    "config:recommended",
     "docker:pinDigests"
   ],
+  "baseBranchPatterns": ["dev", "v5"],
   "packageRules": [
     {
       "matchDatasources": ["npm"],
@@ -26,6 +27,13 @@
       "matchPackageNames": ["node"],
       "matchUpdateTypes": ["pin", "digest"],
       "automerge": true
+    },
+    {
+      "description": "v5 maintenance branch: no major updates of Node or the alexa-fhem image",
+      "matchBaseBranches": ["v5"],
+      "matchPackageNames": ["node", "ghcr.io/fhem/alexa-fhem"],
+      "matchUpdateTypes": ["major"],
+      "enabled": false
     }
   ]
 }
