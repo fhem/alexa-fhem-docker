@@ -18,17 +18,17 @@ Updated version, only with Version tags
 - NodeJS 22
 - Alexa-Fhem 0.5.65
 
-        docker pull ghcr.io/fhem/alexa-fhem:5.2.1
+        docker pull ghcr.io/fhem/alexa-fhem:5.2.2
 
 #### To start your container right away:
 
-docker run -d --name alexa-fhem ghcr.io/fhem/alexa-fhem:5.2.1
+docker run -d --name alexa-fhem ghcr.io/fhem/alexa-fhem:5.2.2
 
 
 ### Permanent storage
 Usually you want to keep your FHEM setup after a container was destroyed (or re-build) so it is a good idea to provide an external directory on your Docker host to keep that data:
 
-    docker run -d --name alexa-fhem -v /some/host/directory:/alexa-fhem ghcr.io/fhem/alexa-fhem:5.2.1
+    docker run -d --name alexa-fhem -v /some/host/directory:/alexa-fhem ghcr.io/fhem/alexa-fhem:5.2.2
 
 #### Verify if container is runnung
 After starting your container, you may check the web server availability:
@@ -50,7 +50,7 @@ You can use one of those variants by adding them to the docker image name like t
 
 	docker pull ghcr.io/fhem/alexa-fhem:latest
   docker pull ghcr.io/fhem/alexa-fhem:5	
-	docker pull ghcr.io/fhem/alexa-fhem:5.2.1
+	docker pull ghcr.io/fhem/alexa-fhem:5.2.2
 
 If you do not specify any variant, `latest` will always be the default.
 
@@ -97,48 +97,27 @@ The platform repositories will also allow you to choose more specific build tags
     	-e TZ=Europe/Berlin
 
 ## Use docker-compose.yaml
-No problem at all. To connect alexa-fhem to your alexa container, you need a common network.
-Named it fhem_net. You should connect your fhem container to the same network to support communication via alexa-fhem and fhem itself.
+The repository contains an example [docker-compose.yml](docker-compose.yml) with the minimum setup, plus optional override files which can be combined as needed:
+
+| File | Adds |
+|---|---|
+| `compose.env.yml` | custom `ALEXAFHEM_UID`, `ALEXAFHEM_GID` and `TZ` |
+| `compose.skill.yml` | port 3000 for the Alexa custom skill |
+| `compose.logfile.yml` | additional logfile on a shared volume |
 
 ```
-version: '2.3'
+docker compose -f docker-compose.yml -f compose.env.yml -f compose.skill.yml up -d
+```
 
-networks:
-  fhem_net:
-    driver: bridge
-    ipam:
-      driver: default
-      config:
-        - subnet: 172.27.0.0/28
-          gateway: 172.27.0.1
-        - subnet: fd00:0:0:0:27::/80
-          gateway: fd00:0:0:0:27::1
+For the fhem container itself see the examples in the [fhem-docker](https://github.com/fhem/fhem-docker) repository. To start alexa-fhem only after fhem is up, add `depends_on` with `condition: service_healthy` for your fhem service to the alexa-fhem service.
 
+alexa-fhem and the fhem container must share a network, so alexa-fhem can reach fhem via its container name. The example defines the network `net` in `docker-compose.yml`; connect your fhem container to the same network.
 
-services:
-  # Minimum example w/o any custom environment variables of fhem container
-  fhem:
-    image: ghcr.io/fhem/fhem-docker:5-bookworm
-    restart: always
-    networks:
-      - fhem_net
-    ports:
-      - "8083:8083"
-    volumes:
-      - "./fhem/:/opt/fhem/"
+The files to use can also be selected once via the environment instead of repeating `-f`:
 
- # Minimum example with some custom environment variables of alexa-fhem container
- alexa-fhem:
-    image: ghcr.io/fhem/alexa-fhem:5.2.1
-    restart: always
-    networks:
-     - fhem_net
-    volumes:
-      - "./alexa-fhem/:/alexa-fhem/"
-    environment:
-      ALEXAFHEM_UID: 6062
-      ALEXAFHEM_GID: 6062
-      TZ: Europe/Berlin
+```
+export COMPOSE_FILE=docker-compose.yml:compose.env.yml:compose.skill.yml:compose.logfile.yml
+docker compose up -d
 ```
 
 If you use another name for your fhem container `fhem`, or want to use another tcp port for fhemweb connections, then you have to change the alexa-fhem config file in the volume for your alea-fhem container `./alexa-fhem/alexa-fhem.json`.
@@ -180,7 +159,7 @@ By default alexa-fhem only writes to stdout/stderr (`docker logs`). To additiona
 
 ```
   alexa-fhem:
-    image: ghcr.io/fhem/alexa-fhem:5.2.1
+    image: ghcr.io/fhem/alexa-fhem:5.2.2
     volumes:
       - "./alexa-fhem/:/alexa-fhem/"
       - "alexa_fhem_log:/var/log/alexa-fhem"
