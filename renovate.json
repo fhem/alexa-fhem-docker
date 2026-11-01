@@ -4,6 +4,7 @@
     "config:base",
     "docker:pinDigests"
   ],
+  "baseBranchPatterns": ["dev", "v5"],
   "packageRules": [
     {
       "matchDatasources": ["npm"],
