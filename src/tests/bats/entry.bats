@@ -73,6 +73,7 @@ teardown_file() {
     assert_file_contains "${ALEXAFHEM_DIR}"/.ssh/config "PubkeyAcceptedKeyTypes +ssh-rsa"
     assert_file_contains "${ALEXAFHEM_DIR}"/.ssh/config "MACs.*hmac-sha2-256" egrep
     assert_file_contains "${ALEXAFHEM_DIR}"/.ssh/config "MACs.*hmac-sha2-512" egrep
+    assert_file_not_contains "${ALEXAFHEM_DIR}"/.ssh/config "gss-"
 }
 
 
@@ -92,6 +93,8 @@ teardown_file() {
     assert_file_contains "${ALEXAFHEM_DIR}"/.ssh/config "PubkeyAcceptedKeyTypes +ssh-rsa"
     assert_file_contains "${ALEXAFHEM_DIR}"/.ssh/config "MACs.*hmac-sha2-256" egrep
     assert_file_contains "${ALEXAFHEM_DIR}"/.ssh/config "MACs.*hmac-sha2-512" egrep
+    assert_file_not_contains "${ALEXAFHEM_DIR}"/.ssh/config "gss-"
+    assert_file_exists "${ALEXAFHEM_DIR}"/.ssh/config.old
 }
 
 
