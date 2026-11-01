@@ -27,7 +27,7 @@ networks:
 services:
   # Minimum example w/o any custom environment variables
   alexa-fhem:
-    image: ghcr.io/fhem/alexa-fhem:5.2.1
+    image: ghcr.io/fhem/alexa-fhem:5.2.2
     restart: always
     networks:
       - net
