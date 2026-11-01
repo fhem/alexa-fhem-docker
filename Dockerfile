@@ -23,9 +23,6 @@ RUN apk add --no-cache \
     && rm -rf /tmp/* /var/tmp/* ~/.[!.] ~/.??* ~/*
 
 ENV TERM=xterm
-ENV LANG=en_US.UTF-8
-ENV LANGUAGE=en_US:en
-ENV LC_ALL=en_US.UTF-8
 
 FROM base AS alexa-fhem
 
