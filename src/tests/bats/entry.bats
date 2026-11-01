@@ -96,6 +96,38 @@ teardown_file() {
 
 
 
+@test "Test harden_ssh_client function keeps an up to date config file" {
+    rm -rf "${ALEXAFHEM_DIR}"/.ssh
+    mkdir -p "${ALEXAFHEM_DIR}"/.ssh
+
+    run -0 harden_ssh_client
+    assert_output --partial "Create a new ssh config file"
+    cp "${ALEXAFHEM_DIR}"/.ssh/config "${BATS_TEST_TMPDIR}"/config.first
+
+    run -0 harden_ssh_client
+    assert_output --partial "Existing ssh config file is up to date."
+    refute_output --partial "Patching ssh config file"
+    assert_file_not_exists "${ALEXAFHEM_DIR}"/.ssh/config.old
+    run -0 cmp "${BATS_TEST_TMPDIR}"/config.first "${ALEXAFHEM_DIR}"/.ssh/config
+}
+
+@test "Test harden_ssh_client function keeps the backup of a patched config on restart" {
+    rm -rf "${ALEXAFHEM_DIR}"/.ssh
+    mkdir -p "${ALEXAFHEM_DIR}"/.ssh
+    printf "%s\n" "Host myhost" "  Port 2222" > "${ALEXAFHEM_DIR}"/.ssh/config
+
+    run -0 harden_ssh_client
+    assert_output --partial "Patching ssh config file"
+    assert_file_contains "${ALEXAFHEM_DIR}"/.ssh/config.old "Host myhost"
+
+    # second start must not patch again and must not overwrite the backup
+    run -0 harden_ssh_client
+    assert_output --partial "Existing ssh config file is up to date."
+    assert_file_contains "${ALEXAFHEM_DIR}"/.ssh/config.old "Host myhost"
+}
+
+
+
 @test "Move config.json from .alexa to ${ALEXAFHEM_DIR}/alexa-fhem" {
   
   mkdir -p "${ALEXAFHEM_DIR}"/.alexa
