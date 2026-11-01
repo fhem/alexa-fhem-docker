@@ -1,6 +1,6 @@
 # Docker image for alexa-fhem
 A [FHEM](https://fhem.de/) complementary Docker image for Amazon alexa voice assistant, based on 
-- [Node 22 - Debian bookworm-slim](https://hub.docker.com/_/node/tags?page=1&name=22-bookworm-slim)
+- [Node 22 - alpine3.24](https://hub.docker.com/_/node/tags?page=1&name=22-alpine3.24)
 - [alexa_fhem](https://www.npmjs.com/package/alexa-fhem?activeTab=versions)
 
 

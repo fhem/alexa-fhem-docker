@@ -73,6 +73,7 @@ teardown_file() {
     assert_file_contains "${ALEXAFHEM_DIR}"/.ssh/config "PubkeyAcceptedKeyTypes +ssh-rsa"
     assert_file_contains "${ALEXAFHEM_DIR}"/.ssh/config "MACs.*hmac-sha2-256" egrep
     assert_file_contains "${ALEXAFHEM_DIR}"/.ssh/config "MACs.*hmac-sha2-512" egrep
+    assert_file_not_contains "${ALEXAFHEM_DIR}"/.ssh/config "gss-"
 }
 
 
@@ -92,6 +93,8 @@ teardown_file() {
     assert_file_contains "${ALEXAFHEM_DIR}"/.ssh/config "PubkeyAcceptedKeyTypes +ssh-rsa"
     assert_file_contains "${ALEXAFHEM_DIR}"/.ssh/config "MACs.*hmac-sha2-256" egrep
     assert_file_contains "${ALEXAFHEM_DIR}"/.ssh/config "MACs.*hmac-sha2-512" egrep
+    assert_file_not_contains "${ALEXAFHEM_DIR}"/.ssh/config "gss-"
+    assert_file_exists "${ALEXAFHEM_DIR}"/.ssh/config.old
 }
 
 
@@ -124,6 +127,30 @@ teardown_file() {
     run -0 harden_ssh_client
     assert_output --partial "Existing ssh config file is up to date."
     assert_file_contains "${ALEXAFHEM_DIR}"/.ssh/config.old "Host myhost"
+}
+
+
+
+@test "Test harden_ssh_client function migrates the v5 default config once" {
+    rm -rf "${ALEXAFHEM_DIR}"/.ssh
+    mkdir -p "${ALEXAFHEM_DIR}"/.ssh
+    # default config written by the Debian based v5 image, including gss-* kex algorithms
+    printf "%s\n" \
+      "IdentityFile ~/.ssh/id_ed25519" \
+      "IdentityFile ~/.ssh/id_rsa" \
+      "PubkeyAcceptedKeyTypes +ssh-rsa" \
+      "MACs hmac-sha2-256,hmac-sha2-512,hmac-sha2-512-etm@openssh.com,hmac-sha2-256-etm@openssh.com,umac-128-etm@openssh.com" \
+      "KexAlgorithms sntrup761x25519-sha512@openssh.com,curve25519-sha256,curve25519-sha256@libssh.org,gss-curve25519-sha256-,diffie-hellman-group16-sha512,gss-group16-sha512-,diffie-hellman-group18-sha512,diffie-hellman-group-exchange-sha256" \
+      "Ciphers aes128-ctr,aes192-ctr,aes256-ctr,aes128-gcm@openssh.com,aes256-gcm@openssh.com" > "${ALEXAFHEM_DIR}"/.ssh/config
+
+    run -0 harden_ssh_client
+    assert_output --partial "Patching ssh config file"
+    assert_file_not_contains "${ALEXAFHEM_DIR}"/.ssh/config "gss-"
+    assert_file_contains "${ALEXAFHEM_DIR}"/.ssh/config.old "gss-curve25519-sha256-"
+
+    run -0 harden_ssh_client
+    assert_output --partial "Existing ssh config file is up to date."
+    assert_file_contains "${ALEXAFHEM_DIR}"/.ssh/config.old "gss-curve25519-sha256-"
 }
 
 

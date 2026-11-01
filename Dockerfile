@@ -1,32 +1,28 @@
-FROM node:22.23.4-bookworm-slim@sha256:4b150b48b4116e2a22f2c39cc27025fbf4f153e2078fd3b14d159fdb5c7279da AS base
+FROM node:22.23.4-alpine3.24@sha256:fe4f6d74e20370acb04ad889077d14d0f64a9c8ea6a42bc60cddf1e844699914 AS base
 ENV NODE_ENV=production
 ARG TARGETPLATFORM
 
-
-RUN  DEBIAN_FRONTEND=noninteractive apt-get update \
-     && DEBIAN_FRONTEND=noninteractive apt-get install -qqy --no-install-recommends \
-        locales \
+# util-linux-login: su from util-linux keeps /usr/local/bin (node) in PATH, busybox su does not
+# coreutils/findutils: entry.sh uses GNU options (chown --no-dereference, realpath -e, ...)
+RUN apk add --no-cache \
+        bash \
+        coreutils \
+        curl \
+        findutils \
+        jq \
+        openssh-client-default \
+        setpriv \
+        shadow \
+        tzdata \
+        util-linux-login \
     \
-    && DEBIAN_FRONTEND=noninteractive dpkg-reconfigure locales \
-    && echo "en_US.UTF-8 UTF-8" > /etc/locale.gen \
-    && locale-gen \
-    && /usr/sbin/update-locale LANG=en_US.UTF-8 \
+    && printf "UID_MAX 60000\nGID_MAX 60000\n" >> /etc/login.defs \
     \
     && ln -sf /usr/share/zoneinfo/Europe/Berlin /etc/localtime \
     && echo "Europe/Berlin" > /etc/timezone \
-    && DEBIAN_FRONTEND=noninteractive dpkg-reconfigure tzdata \
-    \
-    && DEBIAN_FRONTEND=noninteractive apt-get install -qqy --no-install-recommends \
-        curl \
-        jq \
-        openssh-client \
-    && apt-get autoremove -qqy && apt-get clean \
-    && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* ~/.[!.] ~/.??* ~/*
+    && rm -rf /tmp/* /var/tmp/* ~/.[!.] ~/.??* ~/*
 
 ENV TERM=xterm
-ENV LANG=en_US.UTF-8
-ENV LANGUAGE=en_US:en
-ENV LC_ALL=en_US.UTF-8
 
 FROM base AS alexa-fhem
 
@@ -64,7 +60,7 @@ ARG L_VCS_URL="https://github.com/fhem/alexa-fhem-docker/"
 ARG L_VENDOR="FHEM"
 ARG L_LICENSES="MIT"
 ARG L_TITLE="alexa-fhem-${TARGETPLATFORM}"
-ARG L_DESCR="FHEM complementary Docker image for Amazon alexa voice assistant, based on Debian Bookworm."
+ARG L_DESCR="FHEM complementary Docker image for Amazon alexa voice assistant, based on Alpine Linux."
 
 ARG L_AUTHORS_ALEXAFHEM="https://github.com/justme-1968/alexa-fhem/graphs/contributors"
 ARG L_URL_ALEXAFHEM="https://fhem.de/"
