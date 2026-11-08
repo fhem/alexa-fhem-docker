@@ -7,6 +7,11 @@
   "baseBranchPatterns": ["dev", "v5"],
   "packageRules": [
     {
+      "description": "Patch updates are merged automatically",
+      "matchUpdateTypes": ["patch"],
+      "automerge": true
+    },
+    {
       "matchDatasources": ["npm"],
       "matchPackageNames": ["alexa-fhem"],
       "rangeStrategy": "pin"
