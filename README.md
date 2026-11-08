@@ -18,17 +18,17 @@ Updated version, only with Version tags
 - NodeJS 22
 - Alexa-Fhem 0.5.65
 
-        docker pull ghcr.io/fhem/alexa-fhem:5.2.2
+        docker pull ghcr.io/fhem/alexa-fhem:5.2.3
 
 #### To start your container right away:
 
-docker run -d --name alexa-fhem ghcr.io/fhem/alexa-fhem:5.2.2
+docker run -d --name alexa-fhem ghcr.io/fhem/alexa-fhem:5.2.3
 
 
 ### Permanent storage
 Usually you want to keep your FHEM setup after a container was destroyed (or re-build) so it is a good idea to provide an external directory on your Docker host to keep that data:
 
-    docker run -d --name alexa-fhem -v /some/host/directory:/alexa-fhem ghcr.io/fhem/alexa-fhem:5.2.2
+    docker run -d --name alexa-fhem -v /some/host/directory:/alexa-fhem ghcr.io/fhem/alexa-fhem:5.2.3
 
 #### Verify if container is runnung
 After starting your container, you may check the web server availability:
@@ -50,7 +50,7 @@ You can use one of those variants by adding them to the docker image name like t
 
 	docker pull ghcr.io/fhem/alexa-fhem:latest
   docker pull ghcr.io/fhem/alexa-fhem:5	
-	docker pull ghcr.io/fhem/alexa-fhem:5.2.2
+	docker pull ghcr.io/fhem/alexa-fhem:5.2.3
 
 If you do not specify any variant, `latest` will always be the default.
 
@@ -159,7 +159,7 @@ By default alexa-fhem only writes to stdout/stderr (`docker logs`). To additiona
 
 ```
   alexa-fhem:
-    image: ghcr.io/fhem/alexa-fhem:5.2.2
+    image: ghcr.io/fhem/alexa-fhem:5.2.3
     volumes:
       - "./alexa-fhem/:/alexa-fhem/"
       - "alexa_fhem_log:/var/log/alexa-fhem"
