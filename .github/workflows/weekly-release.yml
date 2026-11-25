@@ -1,0 +1,106 @@
+name: Weekly release
+
+# Creates a new patch release once a week if (and only if) the repository
+# changed since the last release and all changes are patch or digest updates.
+# The published release triggers build.yml (release: published), which builds
+# and pushes the image.
+
+on:
+  schedule:
+    - cron: "0 5 * * 1" # Mondays 05:00 UTC
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Only evaluate and print the changelog, do not create a release"
+        type: boolean
+        default: true
+
+concurrency:
+  group: weekly-release
+  cancel-in-progress: false
+
+permissions:
+  contents: write # generate-notes API needs write; the release itself uses BOT_PUSH_TOKEN
+
+jobs:
+  weekly_release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout default branch
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Determine last release
+        id: last
+        run: |
+          last=$(git tag -l | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | sort -V | tail -n1)
+          if [ -z "$last" ]; then echo "No stable release tag found" >&2; exit 1; fi
+          echo "tag=$last" >> "$GITHUB_OUTPUT"
+          echo "Last release: $last"
+
+      - name: Classify changes since last release
+        id: classify
+        run: |
+          out=$(bash scripts/classify-updates.sh "${{ steps.last.outputs.tag }}" HEAD)
+          echo "$out"
+          echo "result=$(echo "$out" | sed -n 's/^RESULT=//p')" >> "$GITHUB_OUTPUT"
+          {
+            echo "updates<<EOF_UPDATES"
+            echo "$out" | grep -v '^RESULT=' | awk -F'|' '{printf "- **%s**: %s\n", $1, $2}'
+            echo "EOF_UPDATES"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Explain skipped release
+        if: ${{ steps.classify.outputs.result != 'release' }}
+        env:
+          RESULT: ${{ steps.classify.outputs.result }}
+          LAST: ${{ steps.last.outputs.tag }}
+          UPDATES: ${{ steps.classify.outputs.updates }}
+        run: |
+          {
+            echo "### No release created"
+            if [ "$RESULT" = "none" ]; then
+              echo "No relevant changes since $LAST."
+            else
+              echo "Changes since $LAST contain more than patch/digest updates, release manually:"
+              echo
+              echo "$UPDATES"
+            fi
+          } | tee -a "$GITHUB_STEP_SUMMARY"
+
+      - name: Build changelog
+        if: ${{ steps.classify.outputs.result == 'release' }}
+        id: notes
+        env:
+          GH_TOKEN: ${{ github.token }}
+          LAST: ${{ steps.last.outputs.tag }}
+          UPDATES: ${{ steps.classify.outputs.updates }}
+        run: |
+          IFS=. read -r major minor patch <<< "${LAST#v}"
+          new="v${major}.${minor}.$((patch + 1))"
+          echo "new=$new" >> "$GITHUB_OUTPUT"
+          {
+            echo "## Updates"
+            echo "$UPDATES"
+            echo
+            gh api "repos/${GITHUB_REPOSITORY}/releases/generate-notes" \
+              -f tag_name="$new" -f target_commitish="$GITHUB_SHA" \
+              -f previous_tag_name="$LAST" --jq .body
+            echo
+            echo "## Commits"
+            git log --no-merges --format='- %s (%h)' "$LAST..HEAD"
+          } > release-notes.md
+          cat release-notes.md >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Create release
+        if: ${{ steps.classify.outputs.result == 'release' && !(github.event_name == 'workflow_dispatch' && inputs.dry_run) }}
+        env:
+          # A PAT is required: releases created with GITHUB_TOKEN do not trigger
+          # other workflows, so build.yml would never publish the image.
+          GH_TOKEN: ${{ secrets.BOT_PUSH_TOKEN }}
+          NEW: ${{ steps.notes.outputs.new }}
+        run: |
+          gh release create "$NEW" --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" \
+            --title "Version ${NEW#v}" --notes-file release-notes.md
