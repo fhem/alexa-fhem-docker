@@ -6,9 +6,6 @@ changelog:
         - docker
         - javascript
         - github_actions
-      authors:
-        - "renovate[bot]"
-        - "dependabot[bot]"
     - title: Other changes
       labels:
         - "*"

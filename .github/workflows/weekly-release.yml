@@ -4,6 +4,14 @@ name: Weekly release
 # changed since the last release and all changes are patch or digest updates.
 # The published release triggers build.yml (release: published), which builds
 # and pushes the image.
+#
+# Notes:
+# - Only the default branch (dev, major line 6) is released. The v5 branch is
+#   intentionally not covered; release it manually if needed.
+# - If build.yml fails after a release was created, the next run reports "no
+#   changes" (the tag already exists). Re-run build.yml for that release.
+# - If the changes contain more than patch/digest updates, nothing is released;
+#   scheduled runs then fail so that the maintainers get notified.
 
 on:
   schedule:
@@ -42,14 +50,17 @@ jobs:
 
       - name: Classify changes since last release
         id: classify
+        env:
+          LAST: ${{ steps.last.outputs.tag }}
         run: |
-          out=$(bash scripts/classify-updates.sh "${{ steps.last.outputs.tag }}" HEAD)
+          out=$(bash scripts/classify-updates.sh "$LAST" HEAD)
           echo "$out"
           echo "result=$(echo "$out" | sed -n 's/^RESULT=//p')" >> "$GITHUB_OUTPUT"
+          delim="EOF_$(od -An -N8 -tx1 /dev/urandom | tr -d ' \n')"
           {
-            echo "updates<<EOF_UPDATES"
-            echo "$out" | grep -v '^RESULT=' | awk -F'|' '{printf "- **%s**: %s\n", $1, $2}'
-            echo "EOF_UPDATES"
+            echo "updates<<$delim"
+            { echo "$out" | grep -v '^RESULT=' || true; } | awk '{c=$0; sub(/\|.*/,"",c); d=$0; sub(/^[^|]*\|/,"",d); printf "- **%s**: %s\n", c, d}'
+            echo "$delim"
           } >> "$GITHUB_OUTPUT"
 
       - name: Explain skipped release
@@ -69,6 +80,11 @@ jobs:
               echo "$UPDATES"
             fi
           } | tee -a "$GITHUB_STEP_SUMMARY"
+          if [ "$RESULT" = "skip" ]; then
+            echo "::warning title=Manual release required::Changes since $LAST contain more than patch/digest updates, see job summary"
+            # fail scheduled runs so that the maintainers get notified
+            if [ "$GITHUB_EVENT_NAME" = "schedule" ]; then exit 1; fi
+          fi
 
       - name: Build changelog
         if: ${{ steps.classify.outputs.result == 'release' }}
@@ -102,5 +118,9 @@ jobs:
           GH_TOKEN: ${{ secrets.BOT_PUSH_TOKEN }}
           NEW: ${{ steps.notes.outputs.new }}
         run: |
+          if [ -z "$GH_TOKEN" ]; then
+            echo "::error::Secret BOT_PUSH_TOKEN is not set (needed so that the release triggers build.yml)"
+            exit 1
+          fi
           gh release create "$NEW" --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" \
             --title "Version ${NEW#v}" --notes-file release-notes.md
