@@ -1,0 +1,11 @@
+changelog:
+  categories:
+    - title: Dependency updates
+      labels:
+        - dependencies
+        - docker
+        - javascript
+        - github_actions
+    - title: Other changes
+      labels:
+        - "*"
