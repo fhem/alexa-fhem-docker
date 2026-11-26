@@ -8,8 +8,6 @@ name: Weekly release
 on:
   schedule:
     - cron: "0 5 * * 1" # Mondays 05:00 UTC
-  push: # TEMPORARY dry-run trigger, remove before merge
-    branches: [feat/weekly-release]
   workflow_dispatch:
     inputs:
       dry_run:
