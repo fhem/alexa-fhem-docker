@@ -8,6 +8,8 @@ name: Weekly release
 on:
   schedule:
     - cron: "0 5 * * 1" # Mondays 05:00 UTC
+  push: # TEMPORARY dry-run trigger, remove before merge
+    branches: [feat/weekly-release]
   workflow_dispatch:
     inputs:
       dry_run:
@@ -95,7 +97,7 @@ jobs:
           cat release-notes.md >> "$GITHUB_STEP_SUMMARY"
 
       - name: Create release
-        if: ${{ steps.classify.outputs.result == 'release' && !(github.event_name == 'workflow_dispatch' && inputs.dry_run) }}
+        if: ${{ steps.classify.outputs.result == 'release' && (github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && !inputs.dry_run)) }}
         env:
           # A PAT is required: releases created with GITHUB_TOKEN do not trigger
           # other workflows, so build.yml would never publish the image.
